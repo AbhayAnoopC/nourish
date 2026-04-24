@@ -17,14 +17,11 @@ import Colors from '@/constants/Colors';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { useLogFlowStore } from '@/store/logFlowStore';
 import { useDailyLogStore } from '@/store/dailyLogStore';
+import { getTodayDateString } from '@/utils/dateUtils';
 import type { FoodLogItem } from '@/types';
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-function getTodayDateString(): string {
-  return new Date().toISOString().split('T')[0];
 }
 
 export default function ConfirmFoodScreen() {

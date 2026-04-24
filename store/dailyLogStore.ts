@@ -2,63 +2,14 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DailyLog, FoodLogItem } from '@/types';
+import { getTodayDateString } from '@/utils/dateUtils';
 
-function getTodayDateString(): string {
-  return new Date().toISOString().split('T')[0];
-}
-
-function buildPlaceholderItems(date: string): FoodLogItem[] {
-  const now = Date.now();
-  return [
-    {
-      id: 'placeholder-1',
-      date,
-      timestamp: new Date(now - 5 * 3_600_000).toISOString(),
-      foodName: 'Oatmeal with berries',
-      servingSize: '1 bowl',
-      servingQuantity: 1,
-      calories: 310,
-      proteinG: 10,
-      carbsG: 54,
-      fatG: 6,
-      source: 'manual',
-    },
-    {
-      id: 'placeholder-2',
-      date,
-      timestamp: new Date(now - 3 * 3_600_000).toISOString(),
-      foodName: 'Grilled chicken breast',
-      servingSize: '150g',
-      servingQuantity: 1,
-      calories: 248,
-      proteinG: 46,
-      carbsG: 0,
-      fatG: 5,
-      source: 'manual',
-    },
-    {
-      id: 'placeholder-3',
-      date,
-      timestamp: new Date(now - 1 * 3_600_000).toISOString(),
-      foodName: 'Brown rice',
-      servingSize: '1 cup cooked',
-      servingQuantity: 1,
-      calories: 216,
-      proteinG: 5,
-      carbsG: 45,
-      fatG: 2,
-      source: 'manual',
-    },
-  ];
-}
-
-function createDefaultLog(date: string): DailyLog {
-  const today = getTodayDateString();
+function createEmptyLog(date: string): DailyLog {
   return {
     date,
-    foodItems: date === today ? buildPlaceholderItems(date) : [],
-    waterMl: date === today ? 750 : 0,
-    caloriesBurned: date === today ? 320 : 0,
+    foodItems: [],
+    waterMl: 0,
+    caloriesBurned: 0,
     caloriesBurnedSource: 'manual',
   };
 }
@@ -81,19 +32,19 @@ const TODAY = getTodayDateString();
 export const useDailyLogStore = create<DailyLogState>()(
   persist(
     (set, get) => ({
-      logs: { [TODAY]: createDefaultLog(TODAY) },
+      logs: { [TODAY]: createEmptyLog(TODAY) },
 
       ensureLogExists: (date) => {
         if (!get().logs[date]) {
           set((state) => ({
-            logs: { ...state.logs, [date]: createDefaultLog(date) },
+            logs: { ...state.logs, [date]: createEmptyLog(date) },
           }));
         }
       },
 
       addFoodItem: (item) => {
         set((state) => {
-          const existing = state.logs[item.date] ?? createDefaultLog(item.date);
+          const existing = state.logs[item.date] ?? createEmptyLog(item.date);
           return {
             logs: {
               ...state.logs,
@@ -124,7 +75,7 @@ export const useDailyLogStore = create<DailyLogState>()(
 
       addWater: (date, ml) => {
         set((state) => {
-          const existing = state.logs[date] ?? createDefaultLog(date);
+          const existing = state.logs[date] ?? createEmptyLog(date);
           return {
             logs: {
               ...state.logs,
@@ -136,7 +87,7 @@ export const useDailyLogStore = create<DailyLogState>()(
 
       setCaloriesBurned: (date, calories, source) => {
         set((state) => {
-          const existing = state.logs[date] ?? createDefaultLog(date);
+          const existing = state.logs[date] ?? createEmptyLog(date);
           return {
             logs: {
               ...state.logs,

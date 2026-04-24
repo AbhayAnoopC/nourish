@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useDailyLogStore } from '@/store/dailyLogStore';
 import { useUserStore } from '@/store/userStore';
-import { DailyLog } from '@/types';
-
-function getTodayDateString(): string {
-  return new Date().toISOString().split('T')[0];
-}
+import { getTodayDateString } from '@/utils/dateUtils';
+import { DailyLog, FoodLogItem } from '@/types';
 
 interface DailyTotals {
   totalCalories: number;
@@ -34,17 +31,20 @@ export function useDailyLog(): UseDailyLogReturn {
     ensureLogExists(today);
   }, [today, ensureLogExists]);
 
-  const log = useMemo<DailyLog>(
-    () =>
-      logs[today] ?? {
-        date: today,
-        foodItems: [],
-        waterMl: 0,
-        caloriesBurned: 0,
-        caloriesBurnedSource: 'manual' as const,
-      },
-    [logs, today],
-  );
+  const log = useMemo<DailyLog>(() => {
+    const raw = logs[today] ?? {
+      date: today,
+      foodItems: [] as FoodLogItem[],
+      waterMl: 0,
+      caloriesBurned: 0,
+      caloriesBurnedSource: 'manual' as const,
+    };
+    // Sort food items chronologically (oldest first) for display
+    const sortedItems = [...raw.foodItems].sort((a, b) =>
+      a.timestamp.localeCompare(b.timestamp),
+    );
+    return { ...raw, foodItems: sortedItems };
+  }, [logs, today]);
 
   const totals = useMemo<DailyTotals>(() => {
     const totalCalories = log.foodItems.reduce((sum, item) => sum + item.calories, 0);

@@ -9,22 +9,8 @@ import Colors from '@/constants/Colors';
 import { FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { useDailyLog } from '@/hooks/useDailyLog';
 import { useUserStore } from '@/store/userStore';
+import { formatDisplayDate, getTimeOfDayGreeting } from '@/utils/dateUtils';
 import type { FoodLogItem as FoodLogItemType } from '@/types';
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
-}
-
-function formatTodayDate(): string {
-  return new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
-}
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
@@ -36,7 +22,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const greeting = useMemo(() => {
-    const base = getGreeting();
+    const base = getTimeOfDayGreeting();
     return profile?.name ? `${base}, ${profile.name}` : base;
   }, [profile?.name]);
 
@@ -57,7 +43,7 @@ export default function HomeScreen() {
     () => (
       <View>
         <View style={[styles.headerSection, { paddingTop: insets.top + SPACING.md }]}>
-          <Text style={[styles.date, { color: colors.placeholder }]}>{formatTodayDate()}</Text>
+          <Text style={[styles.date, { color: colors.placeholder }]}>{formatDisplayDate(new Date())}</Text>
           <Text style={[styles.greeting, { color: colors.text }]}>{greeting}</Text>
         </View>
         <NetCaloriesCard
