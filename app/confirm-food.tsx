@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -17,6 +18,7 @@ import Colors from '@/constants/Colors';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { useLogFlowStore } from '@/store/logFlowStore';
 import { useDailyLogStore } from '@/store/dailyLogStore';
+import { useSavedMealsStore } from '@/store/savedMealsStore';
 import { getTodayDateString } from '@/utils/dateUtils';
 import type { FoodLogItem } from '@/types';
 
@@ -31,8 +33,11 @@ export default function ConfirmFoodScreen() {
   const pendingItem = useLogFlowStore((s) => s.pendingItem);
   const clearPendingItem = useLogFlowStore((s) => s.clearPendingItem);
   const addFoodItem = useDailyLogStore((s) => s.addFoodItem);
+  const addSavedMeal = useSavedMealsStore((s) => s.addMeal);
 
   const [quantityText, setQuantityText] = useState('1');
+  const [saveModalVisible, setSaveModalVisible] = useState(false);
+  const [mealNameText, setMealNameText] = useState('');
 
   const quantity = useMemo(() => {
     const parsed = parseFloat(quantityText);
@@ -71,6 +76,41 @@ export default function ConfirmFoodScreen() {
     clearPendingItem();
     router.navigate('/(tabs)');
   }, [pendingItem, scaled, quantity, addFoodItem, clearPendingItem]);
+
+  const handleSaveAsMeal = useCallback(() => {
+    if (!pendingItem || !scaled) return;
+    setMealNameText(pendingItem.foodName);
+    setSaveModalVisible(true);
+  }, [pendingItem, scaled]);
+
+  const handleSaveConfirm = useCallback(() => {
+    if (!pendingItem || !scaled) return;
+    const name = mealNameText.trim();
+    if (!name) return;
+    addSavedMeal({
+      id: generateId(),
+      name,
+      createdAt: new Date().toISOString(),
+      items: [
+        {
+          foodName: pendingItem.foodName,
+          brandName: pendingItem.brandName,
+          servingSize: pendingItem.servingSize,
+          servingQuantity: quantity,
+          calories: scaled.calories,
+          proteinG: scaled.proteinG,
+          carbsG: scaled.carbsG,
+          fatG: scaled.fatG,
+          source: pendingItem.source,
+        },
+      ],
+      totalCalories: scaled.calories,
+      totalProteinG: scaled.proteinG,
+      totalCarbsG: scaled.carbsG,
+      totalFatG: scaled.fatG,
+    });
+    setSaveModalVisible(false);
+  }, [pendingItem, scaled, quantity, mealNameText, addSavedMeal]);
 
   if (!pendingItem) {
     return (
@@ -156,6 +196,17 @@ export default function ConfirmFoodScreen() {
           />
         )}
 
+        {/* Save as Meal button */}
+        {scaled && (
+          <TouchableOpacity
+            style={[styles.saveButton, { borderColor: colors.tint }]}
+            onPress={handleSaveAsMeal}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.saveButtonText, { color: colors.tint }]}>Save as Meal</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Add to Log button */}
         <TouchableOpacity
           style={[
@@ -171,6 +222,39 @@ export default function ConfirmFoodScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Save as Meal modal */}
+      <Modal visible={saveModalVisible} transparent animationType="fade">
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Save as Meal</Text>
+            <TextInput
+              style={[styles.modalInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              value={mealNameText}
+              onChangeText={setMealNameText}
+              autoFocus
+              selectTextOnFocus
+              maxLength={60}
+              placeholder="Meal name"
+              placeholderTextColor={colors.placeholder}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalBtn, { borderColor: colors.border }]}
+                onPress={() => setSaveModalVisible(false)}
+              >
+                <Text style={[styles.modalBtnText, { color: colors.placeholder }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalBtnPrimary, { backgroundColor: colors.tint }]}
+                onPress={handleSaveConfirm}
+              >
+                <Text style={[styles.modalBtnText, { color: '#FFFFFF' }]}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -250,5 +334,60 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: FONT_SIZE.md,
     textAlign: 'center',
+  },
+  saveButton: {
+    height: 48,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveButtonText: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '600',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: SPACING.xl,
+  },
+  modalCard: {
+    width: '100%',
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.lg,
+    gap: SPACING.md,
+  },
+  modalTitle: {
+    fontSize: FONT_SIZE.lg,
+    fontWeight: '700',
+  },
+  modalInput: {
+    height: 48,
+    borderRadius: BORDER_RADIUS.md,
+    borderWidth: 1,
+    paddingHorizontal: SPACING.md,
+    fontSize: FONT_SIZE.md,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    justifyContent: 'flex-end',
+  },
+  modalBtn: {
+    height: 40,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBtnPrimary: {
+    borderWidth: 0,
+  },
+  modalBtnText: {
+    fontSize: FONT_SIZE.md,
+    fontWeight: '600',
   },
 });

@@ -55,6 +55,7 @@ function RootLayoutNav() {
         <Stack.Screen name="food-search" options={{ headerShown: true }} />
         <Stack.Screen name="confirm-food" options={{ headerShown: true }} />
         <Stack.Screen name="barcode-scan" options={{ headerShown: true }} />
+        <Stack.Screen name="confirm-meal" options={{ headerShown: true }} />
       </Stack>
     </ThemeProvider>
   );

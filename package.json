@@ -22,7 +22,9 @@
     },
     "testMatch": [
       "**/utils/**/*.test.ts",
-      "**/services/**/*.test.ts"
+      "**/services/**/*.test.ts",
+      "**/store/**/*.test.ts",
+      "**/hooks/**/*.test.ts"
     ]
   },
   "dependencies": {
