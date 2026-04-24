@@ -25,6 +25,7 @@ interface DailyLogState {
     calories: number,
     source: DailyLog['caloriesBurnedSource'],
   ) => void;
+  setBodyWeight: (date: string, weightKg: number) => void;
 }
 
 const TODAY = getTodayDateString();
@@ -96,6 +97,18 @@ export const useDailyLogStore = create<DailyLogState>()(
                 caloriesBurned: calories,
                 caloriesBurnedSource: source,
               },
+            },
+          };
+        });
+      },
+
+      setBodyWeight: (date, weightKg) => {
+        set((state) => {
+          const existing = state.logs[date] ?? createEmptyLog(date);
+          return {
+            logs: {
+              ...state.logs,
+              [date]: { ...existing, bodyWeightKg: weightKg },
             },
           };
         });
