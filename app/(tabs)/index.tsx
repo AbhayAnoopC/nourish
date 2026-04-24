@@ -2,14 +2,18 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/components/useColorScheme';
+import { BurnedCaloriesCard } from '@/components/BurnedCaloriesCard';
 import { FoodLogItem } from '@/components/FoodLogItem';
 import { NetCaloriesCard } from '@/components/NetCaloriesCard';
+import { WatchNudgeCard } from '@/components/WatchNudgeCard';
 import { WaterTracker } from '@/components/WaterTracker';
 import Colors from '@/constants/Colors';
 import { FONT_SIZE, SPACING } from '@/constants/Spacing';
+import { useAmazfit } from '@/hooks/useAmazfit';
 import { useDailyLog } from '@/hooks/useDailyLog';
+import { useDailyLogStore } from '@/store/dailyLogStore';
 import { useUserStore } from '@/store/userStore';
-import { formatDisplayDate, getTimeOfDayGreeting } from '@/utils/dateUtils';
+import { getTodayDateString, formatDisplayDate, getTimeOfDayGreeting } from '@/utils/dateUtils';
 import type { FoodLogItem as FoodLogItemType } from '@/types';
 
 export default function HomeScreen() {
@@ -18,6 +22,16 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const profile = useUserStore((state) => state.profile);
   const { log, totals, addWater, removeFoodItem } = useDailyLog();
+  const setCaloriesBurned = useDailyLogStore((s) => s.setCaloriesBurned);
+  const {
+    connectionTier,
+    nudgeDismissed,
+    syncing,
+    connectZepp,
+    connectHealthKit,
+    sync,
+    dismissNudge,
+  } = useAmazfit();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -26,11 +40,18 @@ export default function HomeScreen() {
     return profile?.name ? `${base}, ${profile.name}` : base;
   }, [profile?.name]);
 
-  // Amazfit sync will be wired in step 9
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 800);
-  }, []);
+    await sync();
+    setRefreshing(false);
+  }, [sync]);
+
+  const handleSaveBurned = useCallback(
+    (calories: number) => {
+      setCaloriesBurned(getTodayDateString(), calories, 'manual');
+    },
+    [setCaloriesBurned],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: FoodLogItemType }) => (
@@ -39,17 +60,33 @@ export default function HomeScreen() {
     [removeFoodItem],
   );
 
+  const showNudge = connectionTier === 'none' && !nudgeDismissed;
+
   const listHeader = useMemo(
     () => (
       <View>
         <View style={[styles.headerSection, { paddingTop: insets.top + SPACING.md }]}>
-          <Text style={[styles.date, { color: colors.placeholder }]}>{formatDisplayDate(new Date())}</Text>
+          <Text style={[styles.date, { color: colors.placeholder }]}>
+            {formatDisplayDate(new Date())}
+          </Text>
           <Text style={[styles.greeting, { color: colors.text }]}>{greeting}</Text>
         </View>
         <NetCaloriesCard
           eaten={totals.totalCalories}
           burned={log.caloriesBurned}
           remaining={totals.remainingCalories}
+        />
+        {showNudge && (
+          <WatchNudgeCard
+            onConnectZepp={connectZepp}
+            onConnectHealth={connectHealthKit}
+            onDismiss={dismissNudge}
+          />
+        )}
+        <BurnedCaloriesCard
+          caloriesBurned={log.caloriesBurned}
+          connectionTier={connectionTier}
+          onSave={handleSaveBurned}
         />
         <WaterTracker
           currentMl={log.waterMl}
@@ -59,7 +96,11 @@ export default function HomeScreen() {
         <Text style={[styles.sectionHeader, { color: colors.placeholder }]}>Today's log</Text>
       </View>
     ),
-    [insets.top, colors, greeting, totals, log, addWater, profile?.dailyWaterTargetMl],
+    [
+      insets.top, colors, greeting, totals, log, addWater,
+      profile?.dailyWaterTargetMl, showNudge, connectionTier,
+      connectZepp, connectHealthKit, dismissNudge, handleSaveBurned,
+    ],
   );
 
   const emptyComponent = useMemo(
@@ -83,7 +124,7 @@ export default function HomeScreen() {
         ListEmptyComponent={emptyComponent}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={refreshing || syncing}
             onRefresh={handleRefresh}
             tintColor={colors.tint}
           />
@@ -99,25 +140,11 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  listContent: {
-    flexGrow: 1,
-  },
-  headerSection: {
-    paddingHorizontal: SPACING.md,
-    paddingBottom: SPACING.lg,
-  },
-  date: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '500',
-    marginBottom: SPACING.xs,
-  },
-  greeting: {
-    fontSize: FONT_SIZE.xxl,
-    fontWeight: '700',
-  },
+  container: { flex: 1 },
+  listContent: { flexGrow: 1 },
+  headerSection: { paddingHorizontal: SPACING.md, paddingBottom: SPACING.lg },
+  date: { fontSize: FONT_SIZE.sm, fontWeight: '500', marginBottom: SPACING.xs },
+  greeting: { fontSize: FONT_SIZE.xxl, fontWeight: '700' },
   sectionHeader: {
     fontSize: FONT_SIZE.sm,
     fontWeight: '600',
@@ -127,14 +154,6 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
     marginBottom: SPACING.sm,
   },
-  empty: {
-    paddingHorizontal: SPACING.xl,
-    paddingTop: SPACING.xl,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: FONT_SIZE.md,
-    textAlign: 'center',
-    lineHeight: FONT_SIZE.md * 1.5,
-  },
+  empty: { paddingHorizontal: SPACING.xl, paddingTop: SPACING.xl, alignItems: 'center' },
+  emptyText: { fontSize: FONT_SIZE.md, textAlign: 'center', lineHeight: FONT_SIZE.md * 1.5 },
 });
