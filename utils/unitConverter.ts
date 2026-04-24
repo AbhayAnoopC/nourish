@@ -21,3 +21,8 @@ export function cmToFtIn(cm: number): FeetInches {
 export function ftInToCm(feet: number, inches: number): number {
   return Math.round((feet * 12 + inches) * 2.54);
 }
+
+export function parseServingGrams(servingSize: string): number | null {
+  const match = servingSize.match(/(\d+(?:\.\d+)?)\s*g(?![a-z])/i);
+  return match ? parseFloat(match[1]!) : null;
+}

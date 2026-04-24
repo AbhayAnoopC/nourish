@@ -1,4 +1,4 @@
-import { kgToLbs, lbsToKg, cmToFtIn, ftInToCm } from './unitConverter';
+import { kgToLbs, lbsToKg, cmToFtIn, ftInToCm, parseServingGrams } from './unitConverter';
 
 describe('kgToLbs', () => {
   it('converts 70 kg to ~154.3 lbs', () => {
@@ -40,5 +40,26 @@ describe('ftInToCm', () => {
     const cm = 175;
     const { feet, inches } = cmToFtIn(cm);
     expect(ftInToCm(feet, inches)).toBeCloseTo(cm, 0);
+  });
+});
+
+describe('parseServingGrams', () => {
+  it('parses whole grams: "100g"', () => {
+    expect(parseServingGrams('100g')).toBe(100);
+  });
+  it('parses grams in parens: "1 serving (28g)"', () => {
+    expect(parseServingGrams('1 serving (28g)')).toBe(28);
+  });
+  it('parses decimal grams: "1 oz (28.3g)"', () => {
+    expect(parseServingGrams('1 oz (28.3g)')).toBe(28.3);
+  });
+  it('returns null for cup measurement with no grams', () => {
+    expect(parseServingGrams('1 cup')).toBeNull();
+  });
+  it('returns null for empty string', () => {
+    expect(parseServingGrams('')).toBeNull();
+  });
+  it('does not match "mg" as grams', () => {
+    expect(parseServingGrams('500mg')).toBeNull();
   });
 });
