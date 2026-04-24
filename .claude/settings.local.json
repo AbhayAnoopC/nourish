@@ -1,0 +1,62 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npx create-expo-app@latest . --template tabs)",
+      "Bash(npx:*)",
+      "Read(//tmp/**)",
+      "Read(//tmp/nourish-template/**)",
+      "Bash(ls /tmp/nourish-template/app/\\\\\\(tabs\\\\\\)/)",
+      "Bash(cp -r /tmp/nourish-template/node_modules /c/Users/ASUS/Desktop/Abhay_projects/calorie-tracker/)",
+      "Bash(cp /tmp/nourish-template/package.json /c/Users/ASUS/Desktop/Abhay_projects/calorie-tracker/)",
+      "Bash(cp /tmp/nourish-template/package-lock.json /c/Users/ASUS/Desktop/Abhay_projects/calorie-tracker/)",
+      "Bash(cp /tmp/nourish-template/tsconfig.json /c/Users/ASUS/Desktop/Abhay_projects/calorie-tracker/)",
+      "Bash(cp -r /tmp/nourish-template/assets /c/Users/ASUS/Desktop/Abhay_projects/calorie-tracker/)",
+      "Bash(cat /tmp/nourish-template/app/\\\\\\(tabs\\\\\\)/_layout.tsx)",
+      "Bash(cp /tmp/nourish-template/components/useColorScheme.ts /c/Users/ASUS/Desktop/Abhay_projects/calorie-tracker/components/useColorScheme.ts)",
+      "Bash(cp /tmp/nourish-template/components/useColorScheme.web.ts /c/Users/ASUS/Desktop/Abhay_projects/calorie-tracker/components/useColorScheme.web.ts)",
+      "Bash(cp /tmp/nourish-template/components/useColorScheme.ts /c/Users/ASUS/Desktop/Abhay_projects/calorie-tracker/components/)",
+      "Bash(cp /tmp/nourish-template/components/useColorScheme.web.ts /c/Users/ASUS/Desktop/Abhay_projects/calorie-tracker/components/)",
+      "Bash(npm install:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(node -e \"const p=require\\('./node_modules/jest-expo/package.json'\\); console.log\\('jest-expo:', p.version\\); const e=require\\('./node_modules/expo/package.json'\\); console.log\\('expo:', e.version\\);\")",
+      "Bash(node -e \"const p=require\\('./node_modules/jest-expo/package.json'\\); console.log\\('jest-expo:', p.version\\);\")",
+      "Bash(npm test:*)",
+      "Bash(node -e \"const lines = require\\('fs'\\).readFileSync\\('./node_modules/jest-expo/src/preset/setup.js', 'utf8'\\).split\\('\\\\n'\\); lines.slice\\(40, 55\\).forEach\\(\\(l,i\\) => console.log\\(i+41, l\\)\\);\")",
+      "Bash(node -e \"const lines = require\\('fs'\\).readFileSync\\('./node_modules/jest-expo/src/preset/setup.js', 'utf8'\\).split\\('\\\\n'\\); lines.slice\\(25, 47\\).forEach\\(\\(l,i\\) => console.log\\(i+26, l\\)\\);\")",
+      "Bash(node -e \"const p=require\\('./node_modules/react-native/package.json'\\); console.log\\('rn:', p.version\\);\")",
+      "Bash(node -e \"try { const m=require\\('./node_modules/react-native/Libraries/BatchedBridge/NativeModules'\\); console.log\\('type:', typeof m, typeof m.default\\); } catch\\(e\\) { console.log\\('ERROR:', e.message\\); }\")",
+      "Bash(node -e \"const p=require\\('./node_modules/jest-expo/package.json'\\); console.log\\(JSON.stringify\\(p.peerDependencies, null, 2\\)\\);\")",
+      "Bash(node -e \"const p=require\\('./node_modules/jest-expo/jest-preset.js'\\); console.log\\(JSON.stringify\\(p, null, 2\\)\\);\")",
+      "Bash(ls babel.config.*)",
+      "Bash(cat babel.config.js)",
+      "Bash(tasklist:*)"
+    ]
+  },
+  
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo -e '\\a'"
+          }
+        ]
+      },
+      {
+        "matcher": "idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo -e '\\a'"
+          }
+        ]
+      }
+    ]
+  }
+
+}
