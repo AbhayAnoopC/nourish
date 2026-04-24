@@ -1,14 +1,18 @@
-import { useCallback, useMemo } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/components/useColorScheme';
+import { PantryItemCard } from '@/components/PantryItemCard';
 import { SavedMealCard } from '@/components/SavedMealCard';
 import Colors from '@/constants/Colors';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { useSavedMeals } from '@/hooks/useSavedMeals';
 import { useLogFlowStore } from '@/store/logFlowStore';
-import type { SavedMeal } from '@/types';
+import { usePantryStore } from '@/store/pantryStore';
+import type { PantryItem, SavedMeal } from '@/types';
+
+type ActiveTab = 'meals' | 'pantry';
 
 export default function MealsScreen() {
   const colorScheme = useColorScheme();
@@ -16,6 +20,8 @@ export default function MealsScreen() {
   const insets = useSafeAreaInsets();
   const { query, setQuery, filteredMeals, renameMeal, deleteMeal } = useSavedMeals();
   const setPendingMeal = useLogFlowStore((s) => s.setPendingMeal);
+  const pantryItems = usePantryStore((s) => s.items);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('meals');
 
   const handleSelect = useCallback(
     (meal: SavedMeal) => {
@@ -40,16 +46,48 @@ export default function MealsScreen() {
     [deleteMeal],
   );
 
-  const listHeader = useMemo(
+  const segmentControl = useMemo(
+    () => (
+      <View style={styles.segmentRow}>
+        {(['meals', 'pantry'] as const).map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[
+              styles.segment,
+              {
+                backgroundColor: activeTab === tab ? colors.tint : colors.card,
+                borderColor: colors.border,
+              },
+            ]}
+            onPress={() => setActiveTab(tab)}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                { color: activeTab === tab ? '#fff' : colors.placeholder },
+              ]}
+            >
+              {tab === 'meals' ? 'Saved Meals' : 'Pantry'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    ),
+    [activeTab, colors],
+  );
+
+  const mealsListHeader = useMemo(
     () => (
       <View style={[styles.headerSection, { paddingTop: insets.top + SPACING.md }]}>
         <Text style={[styles.heading, { color: colors.text }]}>Saved Meals</Text>
+        {segmentControl}
         <TextInput
           style={[
             styles.searchInput,
             { backgroundColor: colors.card, borderColor: colors.border, color: colors.text },
           ]}
-          placeholder="Search meals\u2026"
+          placeholder="Search meals…"
           placeholderTextColor={colors.placeholder}
           value={query}
           onChangeText={setQuery}
@@ -57,20 +95,62 @@ export default function MealsScreen() {
         />
       </View>
     ),
-    [insets.top, colors, query, setQuery],
+    [insets.top, colors, query, setQuery, segmentControl],
   );
 
-  const emptyComponent = useMemo(
+  const pantryListHeader = useMemo(
+    () => (
+      <View style={[styles.headerSection, { paddingTop: insets.top + SPACING.md }]}>
+        <Text style={[styles.heading, { color: colors.text }]}>Saved Meals</Text>
+        {segmentControl}
+      </View>
+    ),
+    [insets.top, colors, segmentControl],
+  );
+
+  const mealsEmptyComponent = useMemo(
     () => (
       <View style={styles.empty}>
         <Text style={[styles.emptyTitle, { color: colors.text }]}>No saved meals yet</Text>
         <Text style={[styles.emptyBody, { color: colors.placeholder }]}>
-          When you log a food item, tap \u201cSave as Meal\u201d to store it here for quick re-logging.
+          When you log a food item, tap “Save as Meal” to store it here for quick re-logging.
         </Text>
       </View>
     ),
     [colors],
   );
+
+  const pantryEmptyComponent = useMemo(
+    () => (
+      <View style={styles.emptyContainer}>
+        <Text style={[styles.emptyText, { color: colors.placeholder }]}>
+          Your pantry is empty. Scan a barcode or nutrition label to add items.
+        </Text>
+      </View>
+    ),
+    [colors],
+  );
+
+  if (activeTab === 'pantry') {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <FlatList<PantryItem>
+          data={pantryItems}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <PantryItemCard item={item} />}
+          ListHeaderComponent={pantryListHeader}
+          ListEmptyComponent={pantryEmptyComponent}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: insets.bottom + SPACING.xl },
+          ]}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -85,8 +165,8 @@ export default function MealsScreen() {
             onDelete={handleDelete}
           />
         )}
-        ListHeaderComponent={listHeader}
-        ListEmptyComponent={emptyComponent}
+        ListHeaderComponent={mealsListHeader}
+        ListEmptyComponent={mealsEmptyComponent}
         contentContainerStyle={[
           styles.listContent,
           { paddingBottom: insets.bottom + SPACING.xl },
@@ -110,6 +190,23 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: SPACING.md,
   },
+  segmentRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  segment: {
+    flex: 1,
+    height: 40,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  segmentText: {
+    fontSize: FONT_SIZE.sm,
+    fontWeight: '600',
+  },
   searchInput: {
     height: 44,
     borderRadius: BORDER_RADIUS.lg,
@@ -131,5 +228,19 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.md,
     textAlign: 'center',
     lineHeight: FONT_SIZE.md * 1.5,
+  },
+  emptyContainer: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: FONT_SIZE.md,
+    textAlign: 'center',
+    lineHeight: FONT_SIZE.md * 1.5,
+  },
+  separator: {
+    height: SPACING.sm,
+    marginHorizontal: SPACING.md,
   },
 });

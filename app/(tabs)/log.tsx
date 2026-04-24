@@ -36,16 +36,16 @@ export default function LogScreen() {
     {
       icon: '\ud83c\udff7\ufe0f',
       title: 'Nutrition Label Scan',
-      description: 'Photo of a nutrition facts panel',
-      available: false,
-      onPress: () => undefined,
+      description: 'Photo of a nutrition facts panel \u2014 saves to pantry',
+      available: true,
+      onPress: () => router.push('/label-scan'),
     },
     {
       icon: '\ud83d\udcf7',
       title: 'Photo Scan',
       description: 'Take a photo of your meal',
-      available: false,
-      onPress: () => undefined,
+      available: true,
+      onPress: () => router.push('/photo-scan'),
     },
     {
       icon: '\ud83c\udf99\ufe0f',
