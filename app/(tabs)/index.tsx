@@ -2,8 +2,10 @@ import { useCallback, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/components/useColorScheme';
+import { BodyWeightCard } from '@/components/BodyWeightCard';
 import { BurnedCaloriesCard } from '@/components/BurnedCaloriesCard';
 import { FoodLogItem } from '@/components/FoodLogItem';
+import { MacroBar } from '@/components/MacroBar';
 import { NetCaloriesCard } from '@/components/NetCaloriesCard';
 import { WatchNudgeCard } from '@/components/WatchNudgeCard';
 import { WaterTracker } from '@/components/WaterTracker';
@@ -23,6 +25,7 @@ export default function HomeScreen() {
   const profile = useUserStore((state) => state.profile);
   const { log, totals, addWater, removeFoodItem } = useDailyLog();
   const setCaloriesBurned = useDailyLogStore((s) => s.setCaloriesBurned);
+  const setBodyWeight = useDailyLogStore((s) => s.setBodyWeight);
   const {
     connectionTier,
     nudgeDismissed,
@@ -53,6 +56,13 @@ export default function HomeScreen() {
     [setCaloriesBurned],
   );
 
+  const handleSaveWeight = useCallback(
+    (weightKg: number) => {
+      setBodyWeight(getTodayDateString(), weightKg);
+    },
+    [setBodyWeight],
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: FoodLogItemType }) => (
       <FoodLogItem item={item} onDelete={removeFoodItem} />
@@ -76,6 +86,13 @@ export default function HomeScreen() {
           burned={log.caloriesBurned}
           remaining={totals.remainingCalories}
         />
+        <View style={styles.macroBarWrapper}>
+          <MacroBar
+            proteinG={totals.totalProteinG}
+            carbsG={totals.totalCarbsG}
+            fatG={totals.totalFatG}
+          />
+        </View>
         {showNudge && (
           <WatchNudgeCard
             onConnectZepp={connectZepp}
@@ -93,13 +110,18 @@ export default function HomeScreen() {
           targetMl={profile?.dailyWaterTargetMl ?? 2000}
           onAdd={addWater}
         />
+        <BodyWeightCard
+          weightKg={log.bodyWeightKg}
+          units={profile?.units ?? 'metric'}
+          onSave={handleSaveWeight}
+        />
         <Text style={[styles.sectionHeader, { color: colors.placeholder }]}>Today's log</Text>
       </View>
     ),
     [
       insets.top, colors, greeting, totals, log, addWater,
-      profile?.dailyWaterTargetMl, showNudge, connectionTier,
-      connectZepp, connectHealthKit, dismissNudge, handleSaveBurned,
+      profile?.dailyWaterTargetMl, profile?.units, showNudge, connectionTier,
+      connectZepp, connectHealthKit, dismissNudge, handleSaveBurned, handleSaveWeight,
     ],
   );
 
@@ -154,6 +176,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
     marginBottom: SPACING.sm,
   },
+  macroBarWrapper: { marginHorizontal: SPACING.md, marginBottom: SPACING.md },
   empty: { paddingHorizontal: SPACING.xl, paddingTop: SPACING.xl, alignItems: 'center' },
   emptyText: { fontSize: FONT_SIZE.md, textAlign: 'center', lineHeight: FONT_SIZE.md * 1.5 },
 });
