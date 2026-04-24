@@ -80,6 +80,10 @@ export interface PhotoScanItem {
   uncertain?: boolean;
 }
 
+export interface EditablePhotoItem extends PhotoScanItem {
+  quantityText: string;
+}
+
 export interface LabelScanResult {
   foodName: string;
   brandName?: string;

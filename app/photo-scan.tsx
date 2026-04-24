@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import Colors from '@/constants/Colors';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { scanMealPhoto, AnthropicServiceError } from '@/services/anthropic';
 import { useLogFlowStore } from '@/store/logFlowStore';
+import CameraPermissionPrompt from '@/components/CameraPermissionPrompt';
 
 type ScanState = 'ready' | 'scanning' | 'error';
 
@@ -63,29 +64,15 @@ export default function PhotoScanScreen() {
   }
 
   if (!permission.granted) {
-    const permAction = permission.canAskAgain ? (
-      <TouchableOpacity
-        style={[styles.primaryBtn, { backgroundColor: colors.tint }]}
-        onPress={requestPermission}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.primaryBtnText}>Allow Camera</Text>
-      </TouchableOpacity>
-    ) : (
-      <TouchableOpacity onPress={() => Linking.openSettings()} activeOpacity={0.8}>
-        <Text style={[styles.settingsLink, { color: colors.tint }]}>Open Settings</Text>
-      </TouchableOpacity>
-    );
-
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <>
         <Stack.Screen options={screenOptions} />
-        <Text style={[styles.permTitle, { color: colors.text }]}>Camera Access Needed</Text>
-        <Text style={[styles.permBody, { color: colors.placeholder }]}>
-          Allow camera access to photograph your meal.
-        </Text>
-        {permAction}
-      </View>
+        <CameraPermissionPrompt
+          body="Allow camera access to photograph your meal."
+          canAskAgain={permission.canAskAgain}
+          onRequest={requestPermission}
+        />
+      </>
     );
   }
 
@@ -141,7 +128,6 @@ export default function PhotoScanScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  centered: { alignItems: 'center', justifyContent: 'center', padding: SPACING.xl },
   camera: { ...StyleSheet.absoluteFillObject },
   overlay: {
     flex: 1,
@@ -194,17 +180,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   captureBtnText: { color: '#fff', fontSize: FONT_SIZE.lg, fontWeight: '700' },
-  permTitle: {
-    fontSize: FONT_SIZE.xl,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: SPACING.sm,
-  },
-  permBody: {
-    fontSize: FONT_SIZE.md,
-    textAlign: 'center',
-    marginBottom: SPACING.lg,
-    lineHeight: FONT_SIZE.md * 1.5,
-  },
-  settingsLink: { fontSize: FONT_SIZE.md, fontWeight: '600', marginTop: SPACING.md },
 });

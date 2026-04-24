@@ -5,7 +5,6 @@ import {
   Platform,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -17,14 +16,11 @@ import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { useLogFlowStore } from '@/store/logFlowStore';
 import { useDailyLogStore } from '@/store/dailyLogStore';
 import { getTodayDateString } from '@/utils/dateUtils';
-import type { PhotoScanItem, FoodLogItem } from '@/types';
+import type { EditablePhotoItem, FoodLogItem } from '@/types';
+import PhotoItemRow from '@/components/PhotoItemRow';
 
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-interface EditableItem extends PhotoScanItem {
-  quantityText: string;
 }
 
 export default function PhotoConfirmScreen() {
@@ -35,7 +31,7 @@ export default function PhotoConfirmScreen() {
   const clearPendingPhotoItems = useLogFlowStore((s) => s.clearPendingPhotoItems);
   const addFoodItem = useDailyLogStore((s) => s.addFoodItem);
 
-  const [items, setItems] = useState<EditableItem[]>(
+  const [items, setItems] = useState<EditablePhotoItem[]>(
     () => (rawItems ?? []).map((i) => ({ ...i, quantityText: '1' })),
   );
 
@@ -61,9 +57,9 @@ export default function PhotoConfirmScreen() {
         servingSize: item.servingSize,
         servingQuantity: qty,
         calories: Math.round(item.calories * qty),
-        proteinG: Math.round(item.proteinG * qty * 10) / 10,
-        carbsG: Math.round(item.carbsG * qty * 10) / 10,
-        fatG: Math.round(item.fatG * qty * 10) / 10,
+        proteinG: Math.round((item.proteinG ?? 0) * qty * 10) / 10,
+        carbsG: Math.round((item.carbsG ?? 0) * qty * 10) / 10,
+        fatG: Math.round((item.fatG ?? 0) * qty * 10) / 10,
         source: 'photo',
       };
       addFoodItem(logItem);
@@ -118,46 +114,20 @@ export default function PhotoConfirmScreen() {
           headerShadowVisible: false,
         }}
       />
-      <FlatList<EditableItem>
+      <FlatList<EditablePhotoItem>
         data={items}
         keyExtractor={(_, i) => String(i)}
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + SPACING.xl }]}
         ListHeaderComponent={listHeader}
         ListFooterComponent={listFooter}
-        renderItem={({ item, index }) => {
-          const qty = parseFloat(item.quantityText) || 1;
-          const scaledCal = Math.round(item.calories * qty);
-          const borderColor = item.uncertain ? colors.warning : colors.border;
-          const uncertainBadge = item.uncertain ? (
-            <Text style={[styles.uncertainBadge, { color: colors.warning }]}>⚠ Uncertain</Text>
-          ) : null;
-
-          return (
-            <View style={[styles.itemCard, { backgroundColor: colors.card, borderColor }]}>
-              {uncertainBadge}
-              <Text style={[styles.itemName, { color: colors.text }]}>{item.foodName}</Text>
-              <Text style={[styles.itemServing, { color: colors.placeholder }]}>{item.servingSize}</Text>
-              <View style={styles.row}>
-                <View style={styles.qtyRow}>
-                  <Text style={[styles.qtyLabel, { color: colors.placeholder }]}>Qty</Text>
-                  <TextInput
-                    style={[styles.qtyInput, { color: colors.text, borderColor: colors.border }]}
-                    value={item.quantityText}
-                    onChangeText={(t) => handleQtyChange(index, t)}
-                    keyboardType="decimal-pad"
-                    selectTextOnFocus
-                  />
-                </View>
-                <Text style={[styles.itemCal, { color: colors.text }]}>
-                  {scaledCal} kcal
-                </Text>
-                <TouchableOpacity onPress={() => handleRemove(index)} activeOpacity={0.7}>
-                  <Text style={[styles.removeBtn, { color: colors.danger }]}>Remove</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
-        }}
+        renderItem={({ item, index }) => (
+          <PhotoItemRow
+            item={item}
+            index={index}
+            onRemove={handleRemove}
+            onQtyChange={handleQtyChange}
+          />
+        )}
       />
     </KeyboardAvoidingView>
   );
