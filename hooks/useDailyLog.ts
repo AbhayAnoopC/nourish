@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AppState } from 'react-native';
 import { useDailyLogStore } from '@/store/dailyLogStore';
 import { useUserStore } from '@/store/userStore';
 import { getTodayDateString } from '@/utils/dateUtils';
@@ -20,6 +21,16 @@ interface UseDailyLogReturn {
 }
 
 export function useDailyLog(): UseDailyLogReturn {
+  // Re-compute today whenever the app returns to foreground so the
+  // log resets correctly at midnight without requiring an app restart.
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') forceUpdate((n) => n + 1);
+    });
+    return () => sub.remove();
+  }, []);
+
   const today = getTodayDateString();
   const logs = useDailyLogStore((state) => state.logs);
   const ensureLogExists = useDailyLogStore((state) => state.ensureLogExists);
