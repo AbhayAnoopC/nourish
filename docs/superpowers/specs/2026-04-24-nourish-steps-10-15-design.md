@@ -102,10 +102,21 @@ Both:
 ### `app/photo-scan.tsx`
 Camera screen (uses `expo-camera`). On capture:
 1. Calls `scanMealPhoto`
-2. On success: writes first item to `logFlowStore.setPendingItem`, navigates to existing `confirm-food.tsx`
+2. On success: writes result array to `logFlowStore.setPendingPhotoItems` (new field, see below), navigates to new `app/photo-confirm.tsx`
 3. On error: shows inline error message with "Enter manually" fallback that also routes to `food-search.tsx`
 
-Source field on the resulting `FoodLogItem`: `'photo'`.
+Source field on each resulting `FoodLogItem`: `'photo'`.
+
+### `app/photo-confirm.tsx`
+New screen (cannot reuse `confirm-food.tsx` — that handles a single item). Shows a scrollable list of all detected items. Each row has an editable quantity and a delete button. Items with `uncertain: true` are highlighted. A single "Add All to Log" button at the bottom writes all remaining items to `dailyLogStore` and navigates home.
+
+### `logFlowStore` addition
+New field to carry the multi-item photo result:
+```ts
+pendingPhotoItems: PhotoScanItem[] | null;
+setPendingPhotoItems: (items: PhotoScanItem[]) => void;
+clearPendingPhotoItems: () => void;
+```
 
 ### Log tab update
 Photo scan card switches from `available: false` to active, routing to `app/photo-scan.tsx`.
@@ -154,21 +165,26 @@ Camera screen. On capture:
 ### Barcode scan — modified flow
 `app/barcode-scan.tsx` currently routes to `confirm-food.tsx`. Change: after lookup, map the `SearchResult` to the `LabelScanResult` shape and route to `pantry-confirm.tsx` instead.
 
-Mapping:
+Mapping — note that `SearchResult` values are per 100g. Before mapping, parse the gram weight from `result.servingSize` using the regex `/(\d+(\.\d+)?)\s*g/i`. If a gram weight is found, multiply per-100g macros by `parsedGrams / 100` to get per-serving values. If parsing fails, use 100g as the default serving and set `servingDescription: '100g'`.
+
 ```ts
+const gramWeight = parseServingGrams(result.servingSize) ?? 100;
+const scale = gramWeight / 100;
 {
   foodName: result.foodName,
   brandName: result.brandName,
   barcode: scannedBarcode,
-  servingDescription: result.servingSize,
+  servingDescription: result.servingSize || '100g',
   servingQuantity: 1,
-  caloriesPerServing: result.calories,
-  proteinGPerServing: result.proteinG,
-  carbsGPerServing: result.carbsG,
-  fatGPerServing: result.fatG,
+  caloriesPerServing: Math.round(result.calories * scale),
+  proteinGPerServing: Math.round(result.proteinG * scale * 10) / 10,
+  carbsGPerServing: Math.round(result.carbsG * scale * 10) / 10,
+  fatGPerServing: Math.round(result.fatG * scale * 10) / 10,
   source: 'barcode',
 }
 ```
+
+`parseServingGrams` is a pure utility function added to `utils/unitConverter.ts`.
 
 ### `app/pantry-confirm.tsx`
 Shared confirm screen for all pantry-bound items (barcode + label scan).
@@ -251,14 +267,30 @@ interface TdeeRecalculation {
 }
 ```
 
+### `adaptiveTdeeStore.ts` — revised shape
+Add a `pendingResult` field so `_layout.tsx` can read it without prop drilling:
+```ts
+interface AdaptiveTdeeState {
+  enabled: boolean;
+  lastRecalculatedAt?: string;
+  history: TdeeRecalculation[];
+  pendingResult: AdaptiveTdeeResult | null;  // set by hook, cleared by modal dismiss
+  setEnabled: (enabled: boolean) => void;
+  setPendingResult: (result: AdaptiveTdeeResult | null) => void;
+  recordRecalculation: (r: TdeeRecalculation) => void;
+}
+```
+
 ### `useAdaptiveTdee.ts`
 Hook that runs the check on every app foreground event (same `AppState` pattern as `useDailyLog`). Logic:
 1. Read all logs from `dailyLogStore`
 2. Read `profile.dailyCalorieTarget` and `profile.goal` from `userStore`
-3. Read `adaptiveTdeeStore.enabled` and `lastRecalculatedAt`
+3. Read `adaptiveTdeeStore.enabled`, `lastRecalculatedAt`, and `setPendingResult`
 4. Skip if disabled, or if `lastRecalculatedAt` is within the last 14 days
 5. Call `calculateAdaptiveTdee`
-6. If a result is returned, expose it as `pendingRecalculation` state
+6. If a result is returned, call `adaptiveTdeeStore.setPendingResult(result)`
+
+`AdaptiveTdeeModal` in `_layout.tsx` reads `adaptiveTdeeStore.pendingResult` directly — no props needed.
 
 ### `AdaptiveTdeeModal.tsx`
 Rendered at `app/_layout.tsx` root level, conditionally visible when `useAdaptiveTdee` returns a `pendingRecalculation`.
