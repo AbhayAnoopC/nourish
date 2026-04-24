@@ -54,3 +54,16 @@ export type ActivityLevel = UserProfile['activityLevel'];
 export type Goal = UserProfile['goal'];
 export type FoodSource = FoodLogItem['source'];
 export type CaloriesBurnedSource = DailyLog['caloriesBurnedSource'];
+
+// Unified search result from USDA or Open Food Facts — values are per 100 g
+export interface SearchResult {
+  id: string;
+  foodName: string;
+  brandName?: string;
+  servingSize: string; // always '100g' for search results in step 4
+  calories: number;    // kcal per 100 g
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  source: 'usda' | 'openfoodfacts';
+}
