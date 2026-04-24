@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   StyleSheet,
   Text,
   TextInput,
@@ -22,8 +23,15 @@ export function WaterTracker({ currentMl, targetMl, onAdd }: WaterTrackerProps) 
   const [showCustom, setShowCustom] = useState(false);
   const [customText, setCustomText] = useState('');
 
-  const progress = Math.min(currentMl / targetMl, 1);
-  const progressPercent = `${Math.round(progress * 100)}%` as `${number}%`;
+  const percentage = Math.min(currentMl / targetMl, 1);
+  const fillAnim = useRef(new Animated.Value(percentage)).current;
+
+  useEffect(() => {
+    Animated.spring(fillAnim, {
+      toValue: percentage,
+      useNativeDriver: false,
+    }).start();
+  }, [percentage, fillAnim]);
 
   const handleConfirmCustom = () => {
     const ml = parseInt(customText, 10);
@@ -107,8 +115,17 @@ export function WaterTracker({ currentMl, targetMl, onAdd }: WaterTrackerProps) 
         </Text>
       </View>
       <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
-        <View
-          style={[styles.progressFill, { width: progressPercent, backgroundColor: colors.tint }]}
+        <Animated.View
+          style={[
+            styles.progressFill,
+            {
+              backgroundColor: colors.tint,
+              width: fillAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0%', '100%'],
+              }),
+            },
+          ]}
         />
       </View>
       {showCustom ? customInput : quickButtons}

@@ -3,15 +3,26 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { SPACING, FONT_SIZE, BORDER_RADIUS } from '@/constants/Spacing';
 import { SearchResult } from '@/types';
+import { SkeletonRow } from '@/components/SkeletonRow';
 
-interface FoodSearchResultItemProps {
-  item: SearchResult;
-  onSelect: (item: SearchResult) => void;
-}
+type FoodSearchResultItemProps =
+  | { isLoading: true; item?: undefined; onSelect?: undefined }
+  | { isLoading?: false; item: SearchResult; onSelect: (item: SearchResult) => void };
 
-export function FoodSearchResultItem({ item, onSelect }: FoodSearchResultItemProps) {
+export function FoodSearchResultItem({ item, onSelect, isLoading }: FoodSearchResultItemProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { borderBottomColor: colors.border }]}>
+        <View style={styles.skeletonBody}>
+          <SkeletonRow height={16} width="60%" />
+          <SkeletonRow height={12} width="40%" />
+        </View>
+      </View>
+    );
+  }
 
   const sourceLabel = item.source === 'usda' ? 'USDA' : 'OFF';
 
@@ -48,6 +59,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
     borderBottomWidth: 1,
+  },
+  skeletonBody: {
+    flex: 1,
+    gap: SPACING.xs,
+    paddingVertical: SPACING.xs,
   },
   info: {
     flex: 1,

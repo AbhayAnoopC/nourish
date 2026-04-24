@@ -1,6 +1,5 @@
 import { useCallback, useRef } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
@@ -41,7 +40,21 @@ export default function FoodSearchScreen() {
 
   const showEmptyHint = !loading && query.length < 2 && results.length === 0;
   const showError = !loading && error !== null;
-  const showResults = !loading && results.length > 0;
+  const showFlatList = query.length >= 2;
+
+  const emptyComponent = loading ? (
+    <View style={styles.skeletonList}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <FoodSearchResultItem key={i} isLoading />
+      ))}
+    </View>
+  ) : (
+    <View style={styles.emptyContainer}>
+      <Text style={[styles.emptyText, { color: colors.placeholder }]}>
+        {`No results for "${query}". Try scanning a barcode instead.`}
+      </Text>
+    </View>
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -71,19 +84,12 @@ export default function FoodSearchScreen() {
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={handleClear} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text style={[styles.clearButton, { color: colors.placeholder }]}>{'\u00d7'}</Text>
+            <Text style={[styles.clearButton, { color: colors.placeholder }]}>{'×'}</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* States */}
-      {loading && (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.tint} />
-          <Text style={[styles.hintText, { color: colors.placeholder }]}>Searching…</Text>
-        </View>
-      )}
-
       {showEmptyHint && (
         <View style={styles.centered}>
           <Text style={[styles.hintText, { color: colors.placeholder }]}>
@@ -98,13 +104,14 @@ export default function FoodSearchScreen() {
         </View>
       )}
 
-      {showResults && (
+      {showFlatList && (
         <FlatList<SearchResult>
           data={results}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <FoodSearchResultItem item={item} onSelect={handleSelect} />
           )}
+          ListEmptyComponent={emptyComponent}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: insets.bottom + SPACING.lg }}
         />
@@ -149,6 +156,18 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
   },
   errorText: {
+    fontSize: FONT_SIZE.md,
+    textAlign: 'center',
+    lineHeight: FONT_SIZE.md * 1.6,
+  },
+  skeletonList: {
+    paddingTop: SPACING.sm,
+  },
+  emptyContainer: {
+    padding: SPACING.xl,
+    alignItems: 'center',
+  },
+  emptyText: {
     fontSize: FONT_SIZE.md,
     textAlign: 'center',
     lineHeight: FONT_SIZE.md * 1.6,
