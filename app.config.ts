@@ -31,11 +31,17 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     output: 'static',
     favicon: './assets/images/favicon.png',
   },
-  plugins: ['expo-router'],
+  plugins: [
+    'expo-router',
+    'expo-font',
+    'expo-web-browser',
+    'expo-secure-store',
+  ],
   experiments: {
     typedRoutes: true,
   },
   extra: {
     usdaApiKey: process.env.USDA_API_KEY ?? '',
+    zeppClientId: process.env.ZEPP_CLIENT_ID ?? '',
   },
 });

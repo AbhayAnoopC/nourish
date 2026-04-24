@@ -54,6 +54,7 @@ export type ActivityLevel = UserProfile['activityLevel'];
 export type Goal = UserProfile['goal'];
 export type FoodSource = FoodLogItem['source'];
 export type CaloriesBurnedSource = DailyLog['caloriesBurnedSource'];
+export type AmazfitConnectionTier = 'zepp' | 'healthconnect' | 'applehealth' | 'manual' | 'none';
 
 // Unified search result — values are per 100 g
 // source indicates how the item was found: 'usda'/'openfoodfacts' via text search, 'barcode' via barcode scan
