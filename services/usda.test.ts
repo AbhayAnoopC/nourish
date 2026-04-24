@@ -1,4 +1,4 @@
-import { searchFoods } from './usda';
+import { lookupByBarcode, searchFoods } from './usda';
 
 // Mock expo-constants so the module loads without the Expo runtime
 jest.mock('expo-constants', () => ({
@@ -81,5 +81,37 @@ describe('searchFoods', () => {
   it('throws when fetch rejects (network error)', async () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
     await expect(searchFoods('chicken')).rejects.toThrow('Network error');
+  });
+});
+
+describe('lookupByBarcode', () => {
+  it('returns first search result with source barcode when match found', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => MOCK_RESPONSE,
+    });
+
+    const result = await lookupByBarcode('0012345678901');
+    expect(result).not.toBeNull();
+    expect(result).toMatchObject({
+      id: 'usda-12345',
+      foodName: 'CHICKEN BREAST, GRILLED',
+      source: 'barcode',
+    });
+  });
+
+  it('returns null when no foods match the barcode', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ foods: [] }),
+    });
+
+    const result = await lookupByBarcode('0000000000000');
+    expect(result).toBeNull();
+  });
+
+  it('throws when the API returns a non-ok status', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 429 });
+    await expect(lookupByBarcode('123')).rejects.toThrow('429');
   });
 });

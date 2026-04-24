@@ -43,6 +43,14 @@ function mapFdcFoodToSearchResult(food: FdcFood): SearchResult {
   };
 }
 
+export async function lookupByBarcode(barcode: string): Promise<SearchResult | null> {
+  // USDA branded food records include GTINs; searching the UPC as a query
+  // string often surfaces the exact product when OFF doesn't have it.
+  const results = await searchFoods(barcode);
+  const match = results[0] ?? null;
+  return match ? { ...match, source: 'barcode' } : null;
+}
+
 export async function searchFoods(query: string): Promise<SearchResult[]> {
   const apiKey: string =
     (Constants.expoConfig?.extra?.usdaApiKey as string) || 'DEMO_KEY';

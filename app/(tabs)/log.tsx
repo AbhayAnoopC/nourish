@@ -30,8 +30,8 @@ export default function LogScreen() {
       icon: '\ud83d\udcca',
       title: 'Barcode Scan',
       description: 'Scan a product barcode',
-      available: false,
-      onPress: () => undefined,
+      available: true,
+      onPress: () => router.push('/barcode-scan'),
     },
     {
       icon: '\ud83c\udff7\ufe0f',

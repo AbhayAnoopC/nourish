@@ -3,7 +3,6 @@ import { useFonts } from 'expo-font';
 import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { useUserStore } from '@/store/userStore';
@@ -55,6 +54,7 @@ function RootLayoutNav() {
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="food-search" options={{ headerShown: true }} />
         <Stack.Screen name="confirm-food" options={{ headerShown: true }} />
+        <Stack.Screen name="barcode-scan" options={{ headerShown: true }} />
       </Stack>
     </ThemeProvider>
   );

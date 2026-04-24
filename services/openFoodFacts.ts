@@ -1,7 +1,7 @@
 import { SearchResult } from '@/types';
 
-// Search endpoint lives outside the /api/v0 base, so use the full URL
 const SEARCH_URL = 'https://world.openfoodfacts.org/cgi/search.pl';
+const PRODUCT_URL = 'https://world.openfoodfacts.org/api/v0/product';
 
 interface OFFNutriments {
   'energy-kcal_100g'?: number;
@@ -47,6 +47,23 @@ function mapOFFProductToSearchResult(product: OFFProduct): SearchResult | null {
     fatG: Math.round((product.nutriments.fat_100g ?? 0) * 10) / 10,
     source: 'openfoodfacts',
   };
+}
+
+export async function lookupByBarcode(barcode: string): Promise<SearchResult | null> {
+  const url = `${PRODUCT_URL}/${encodeURIComponent(barcode)}.json`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Open Food Facts API responded with status ${response.status}`);
+    }
+    const data: { status: number; product?: OFFProduct } = await response.json();
+    if (data.status !== 1 || !data.product) return null;
+    const result = mapOFFProductToSearchResult(data.product);
+    return result ? { ...result, source: 'barcode' } : null;
+  } catch (error) {
+    console.error('[openFoodFacts] lookupByBarcode failed:', error);
+    throw error;
+  }
 }
 
 export async function searchFoodsByName(query: string): Promise<SearchResult[]> {

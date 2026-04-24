@@ -1,4 +1,4 @@
-import { searchFoodsByName } from './openFoodFacts';
+import { lookupByBarcode, searchFoodsByName } from './openFoodFacts';
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -96,5 +96,72 @@ describe('searchFoodsByName', () => {
   it('throws when fetch rejects (network error)', async () => {
     mockFetch.mockRejectedValueOnce(new Error('timeout'));
     await expect(searchFoodsByName('oat')).rejects.toThrow('timeout');
+  });
+});
+
+describe('lookupByBarcode', () => {
+  const MOCK_PRODUCT_RESPONSE = {
+    status: 1,
+    product: {
+      _id: '737628064502',
+      product_name: 'Kind Bar, Dark Chocolate Nuts & Sea Salt',
+      brands: 'KIND',
+      nutriments: {
+        'energy-kcal_100g': 486,
+        proteins_100g: 10,
+        fat_100g: 36,
+        carbohydrates_100g: 36,
+      },
+    },
+  };
+
+  it('returns a SearchResult with source barcode on success', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => MOCK_PRODUCT_RESPONSE,
+    });
+
+    const result = await lookupByBarcode('737628064502');
+    expect(result).not.toBeNull();
+    expect(result).toMatchObject({
+      id: 'off-737628064502',
+      foodName: 'Kind Bar, Dark Chocolate Nuts & Sea Salt',
+      brandName: 'KIND',
+      calories: 486,
+      source: 'barcode',
+    });
+  });
+
+  it('returns null when status is 0 (product not found)', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ status: 0 }),
+    });
+
+    const result = await lookupByBarcode('000000000000');
+    expect(result).toBeNull();
+  });
+
+  it('returns null when product has no name', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        status: 1,
+        product: { _id: 'abc', product_name: '', brands: 'X', nutriments: {} },
+      }),
+    });
+
+    const result = await lookupByBarcode('abc');
+    expect(result).toBeNull();
+  });
+
+  it('throws when the API returns a non-ok status', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 503 });
+    await expect(lookupByBarcode('123')).rejects.toThrow('503');
+  });
+
+  it('throws when fetch rejects (network error)', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('network error'));
+    await expect(lookupByBarcode('123')).rejects.toThrow('network error');
   });
 });
