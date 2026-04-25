@@ -2,7 +2,7 @@ import type { DailyLog, AdaptiveTdeeResult } from '@/types';
 
 const KCAL_PER_KG = 7700;
 
-const GOAL_ADJUSTMENT: Record<string, number> = {
+const GOAL_ADJUSTMENT: Record<'lose' | 'maintain' | 'gain', number> = {
   lose: -500,
   maintain: 0,
   gain: 250,
