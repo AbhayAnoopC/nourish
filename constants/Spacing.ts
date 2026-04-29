@@ -2,6 +2,7 @@ export const SPACING = {
   xs: 4,
   sm: 8,
   md: 16,
+  cardPad: 20,
   lg: 24,
   xl: 32,
   xxl: 48,
@@ -20,6 +21,7 @@ export const FONT_SIZE = {
 export const BORDER_RADIUS = {
   sm: 6,
   md: 12,
+  button: 14,
   lg: 16,
   xl: 24,
   full: 9999,
