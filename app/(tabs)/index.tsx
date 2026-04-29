@@ -1,28 +1,31 @@
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/components/useColorScheme';
-import { BurnedCaloriesCard } from '@/components/BurnedCaloriesCard';
-import { FoodLogItem } from '@/components/FoodLogItem';
-import { NetCaloriesCard } from '@/components/NetCaloriesCard';
-import { WatchNudgeCard } from '@/components/WatchNudgeCard';
-import { WaterTracker } from '@/components/WaterTracker';
-import Colors from '@/constants/Colors';
-import { FONT_SIZE, SPACING } from '@/constants/Spacing';
+import { useTokens } from '@/hooks/useTokens';
+import { HomeHeader } from '@/components/HomeHeader';
+import { HomeHeroPager } from '@/components/HomeHero/HomeHeroPager';
+import { CaloriesPage } from '@/components/HomeHero/CaloriesPage';
+import { MacrosPage } from '@/components/HomeHero/MacrosPage';
+import { WaterPage } from '@/components/HomeHero/WaterPage';
+import { WeightPage } from '@/components/HomeHero/WeightPage';
+import { WatchNudgeBanner } from '@/components/WatchNudgeBanner';
+import { FoodLogRow } from '@/components/FoodLogRow';
+import { WeightLogModal } from '@/components/WeightLogModal';
+import { Type } from '@/constants/Typography';
+import { SPACING } from '@/constants/Spacing';
 import { useAmazfit } from '@/hooks/useAmazfit';
 import { useDailyLog } from '@/hooks/useDailyLog';
 import { useDailyLogStore } from '@/store/dailyLogStore';
 import { useUserStore } from '@/store/userStore';
 import { getTodayDateString, formatDisplayDate, getTimeOfDayGreeting } from '@/utils/dateUtils';
-import type { FoodLogItem as FoodLogItemType } from '@/types';
+import type { FoodLogItem as FoodLogItemType, WeightEntry } from '@/types';
 
 export default function HomeScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
-  const insets = useSafeAreaInsets();
+  const tokens = useTokens();
   const profile = useUserStore((state) => state.profile);
   const { log, totals, addWater, removeFoodItem } = useDailyLog();
-  const setCaloriesBurned = useDailyLogStore((s) => s.setCaloriesBurned);
+  const allLogs = useDailyLogStore((s) => s.logs);
+  const setBodyWeight = useDailyLogStore((s) => s.setBodyWeight);
+  const [weightModalOpen, setWeightModalOpen] = useState(false);
   const {
     connectionTier,
     nudgeDismissed,
@@ -40,82 +43,121 @@ export default function HomeScreen() {
     return profile?.name ? `${base}, ${profile.name}` : base;
   }, [profile?.name]);
 
+  const today = getTodayDateString();
+
+  const weightEntries = useMemo<WeightEntry[]>(() => {
+    return Object.values(allLogs)
+      .filter((l) => typeof l.bodyWeightKg === 'number')
+      .map((l) => ({ date: l.date, weightKg: l.bodyWeightKg as number }));
+  }, [allLogs]);
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     await sync();
     setRefreshing(false);
   }, [sync]);
 
-  const handleSaveBurned = useCallback(
-    (calories: number) => {
-      setCaloriesBurned(getTodayDateString(), calories, 'manual');
+  const handleLogWeight = useCallback(() => {
+    setWeightModalOpen(true);
+  }, []);
+
+  const handleWeightSave = useCallback(
+    (kg: number) => {
+      setBodyWeight(today, kg);
     },
-    [setCaloriesBurned],
+    [setBodyWeight, today],
   );
 
+  const latestWeightKg = useMemo(() => {
+    const todayLog = allLogs[today];
+    if (todayLog?.bodyWeightKg) return todayLog.bodyWeightKg;
+    const sorted = Object.values(allLogs)
+      .filter((l) => typeof l.bodyWeightKg === 'number')
+      .sort((a, b) => b.date.localeCompare(a.date));
+    return sorted[0]?.bodyWeightKg;
+  }, [allLogs, today]);
+
   const renderItem = useCallback(
-    ({ item }: { item: FoodLogItemType }) => (
-      <FoodLogItem item={item} onDelete={removeFoodItem} />
+    ({ item, index }: { item: FoodLogItemType; index: number }) => (
+      <FoodLogRow
+        item={item}
+        onDelete={removeFoodItem}
+        isLast={index === log.foodItems.length - 1}
+      />
     ),
-    [removeFoodItem],
+    [removeFoodItem, log.foodItems.length],
   );
 
   const showNudge = connectionTier === 'none' && !nudgeDismissed;
 
+  const heroPages = useMemo(
+    () => [
+      <CaloriesPage
+        key="cal"
+        eaten={totals.totalCalories}
+        burned={log.caloriesBurned}
+        target={profile?.dailyCalorieTarget ?? 2000}
+      />,
+      <MacrosPage
+        key="mac"
+        proteinG={totals.totalProteinG}
+        carbsG={totals.totalCarbsG}
+        fatG={totals.totalFatG}
+        proteinTarget={profile?.dailyProteinTarget ?? 120}
+        carbsTarget={profile?.dailyCarbTarget ?? 250}
+        fatTarget={profile?.dailyFatTarget ?? 65}
+      />,
+      <WaterPage
+        key="wat"
+        currentMl={log.waterMl}
+        targetMl={profile?.dailyWaterTargetMl ?? 2000}
+        onAdd={addWater}
+      />,
+      <WeightPage
+        key="wgt"
+        entries={weightEntries}
+        anchorDate={today}
+        goal={profile?.goal ?? 'maintain'}
+        onLogTap={handleLogWeight}
+      />,
+    ],
+    [totals, log, profile, addWater, weightEntries, today, handleLogWeight],
+  );
+
   const listHeader = useMemo(
     () => (
       <View>
-        <View style={[styles.headerSection, { paddingTop: insets.top + SPACING.md }]}>
-          <Text style={[styles.date, { color: colors.placeholder }]}>
-            {formatDisplayDate(new Date())}
-          </Text>
-          <Text style={[styles.greeting, { color: colors.text }]}>{greeting}</Text>
-        </View>
-        <NetCaloriesCard
-          eaten={totals.totalCalories}
-          burned={log.caloriesBurned}
-          remaining={totals.remainingCalories}
-        />
+        <HomeHeader date={formatDisplayDate(new Date())} greeting={greeting} />
         {showNudge && (
-          <WatchNudgeCard
+          <WatchNudgeBanner
             onConnectZepp={connectZepp}
             onConnectHealth={connectHealthKit}
             onDismiss={dismissNudge}
           />
         )}
-        <BurnedCaloriesCard
-          caloriesBurned={log.caloriesBurned}
-          connectionTier={connectionTier}
-          onSave={handleSaveBurned}
-        />
-        <WaterTracker
-          currentMl={log.waterMl}
-          targetMl={profile?.dailyWaterTargetMl ?? 2000}
-          onAdd={addWater}
-        />
-        <Text style={[styles.sectionHeader, { color: colors.placeholder }]}>Today's log</Text>
+        <HomeHeroPager pages={heroPages} />
+        <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.sectionHeader]}>
+          TODAY'S LOG
+        </Text>
       </View>
     ),
-    [
-      insets.top, colors, greeting, totals, log, addWater,
-      profile?.dailyWaterTargetMl, showNudge, connectionTier,
-      connectZepp, connectHealthKit, dismissNudge, handleSaveBurned,
-    ],
+    [greeting, showNudge, connectZepp, connectHealthKit, dismissNudge, heroPages, tokens.text.secondary],
   );
 
   const emptyComponent = useMemo(
     () => (
       <View style={styles.empty}>
-        <Text style={[styles.emptyText, { color: colors.placeholder }]}>
-          No food logged yet. Tap + to add your first entry.
+        <Text style={[Type.displayTitle, { color: tokens.text.primary }]}>No food logged yet</Text>
+        <Text style={[Type.textMd, { color: tokens.text.secondary }, styles.emptyBody]}>
+          Tap + below to add your first entry.
         </Text>
       </View>
     ),
-    [colors.placeholder],
+    [tokens.text.primary, tokens.text.secondary],
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: tokens.bg.primary }]}>
       <FlatList<FoodLogItemType>
         data={log.foodItems}
         keyExtractor={(item) => item.id}
@@ -126,14 +168,18 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing || syncing}
             onRefresh={handleRefresh}
-            tintColor={colors.tint}
+            tintColor={tokens.accent.primary}
           />
         }
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: insets.bottom + SPACING.xl },
-        ]}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+      />
+      <WeightLogModal
+        visible={weightModalOpen}
+        unit={profile?.units ?? 'metric'}
+        initialWeightKg={latestWeightKg}
+        onSave={handleWeightSave}
+        onDismiss={() => setWeightModalOpen(false)}
       />
     </View>
   );
@@ -141,19 +187,20 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  listContent: { flexGrow: 1 },
-  headerSection: { paddingHorizontal: SPACING.md, paddingBottom: SPACING.lg },
-  date: { fontSize: FONT_SIZE.sm, fontWeight: '500', marginBottom: SPACING.xs },
-  greeting: { fontSize: FONT_SIZE.xxl, fontWeight: '700' },
+  listContent: { flexGrow: 1, paddingBottom: 120 },
   sectionHeader: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
     marginHorizontal: SPACING.md,
-    marginTop: SPACING.xs,
+    marginTop: SPACING.lg,
     marginBottom: SPACING.sm,
   },
-  empty: { paddingHorizontal: SPACING.xl, paddingTop: SPACING.xl, alignItems: 'center' },
-  emptyText: { fontSize: FONT_SIZE.md, textAlign: 'center', lineHeight: FONT_SIZE.md * 1.5 },
+  empty: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: 80,
+    alignItems: 'center',
+  },
+  emptyBody: {
+    marginTop: SPACING.sm,
+    textAlign: 'center',
+  },
 });

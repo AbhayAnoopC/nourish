@@ -69,3 +69,5 @@ export interface SearchResult {
   fatG: number;
   source: 'usda' | 'openfoodfacts' | 'barcode';
 }
+
+export type { WeightEntry } from '@/utils/sparklineData';
