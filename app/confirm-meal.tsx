@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { useLogFlowStore } from '@/store/logFlowStore';
 import { useDailyLogStore } from '@/store/dailyLogStore';
 import { getTodayDateString } from '@/utils/dateUtils';
@@ -24,8 +24,7 @@ function generateId(): string {
 }
 
 export default function ConfirmMealScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const insets = useSafeAreaInsets();
   const pendingMeal = useLogFlowStore((s) => s.pendingMeal);
   const clearPendingMeal = useLogFlowStore((s) => s.clearPendingMeal);
@@ -77,16 +76,16 @@ export default function ConfirmMealScreen() {
 
   const screenOptions = {
     title: 'Log Meal',
-    headerStyle: { backgroundColor: colors.card },
-    headerTintColor: colors.text,
+    headerStyle: { backgroundColor: tokens.bg.surface },
+    headerTintColor: tokens.text.primary,
     headerShadowVisible: false,
   };
 
   if (!pendingMeal) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, styles.centered, { backgroundColor: tokens.bg.primary }]}>
         <Stack.Screen options={screenOptions} />
-        <Text style={[styles.errorText, { color: colors.danger }]}>
+        <Text style={[Type.textMd, { color: tokens.status.danger }, styles.errorText]}>
           No meal selected. Please go back and choose a meal.
         </Text>
       </View>
@@ -95,12 +94,20 @@ export default function ConfirmMealScreen() {
 
   const canAdd = multiplier > 0 && scaledTotals !== null;
 
+  const cardShadow = {
+    shadowColor: '#1A1A1A',
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  } as const;
+
   const itemRows = pendingMeal.items.map((item, i) => (
-    <View key={i} style={[styles.itemRow, { borderBottomColor: colors.border }]}>
-      <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>
+    <View key={i} style={[styles.itemRow, { borderBottomColor: tokens.border.hairline }]}>
+      <Text style={[Type.textMd, { color: tokens.text.primary }, styles.itemName]} numberOfLines={1}>
         {item.foodName}
       </Text>
-      <Text style={[styles.itemCalories, { color: colors.placeholder }]}>
+      <Text style={[Type.monoSm, { color: tokens.text.secondary }]}>
         {Math.round(item.calories * (multiplier || 1))} kcal
       </Text>
     </View>
@@ -109,21 +116,25 @@ export default function ConfirmMealScreen() {
   const content = (
     <View style={styles.inner}>
       {/* Meal name */}
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.mealName, { color: colors.text }]}>{pendingMeal.name}</Text>
-        <Text style={[styles.itemCount, { color: colors.placeholder }]}>
+      <View style={[styles.card, { backgroundColor: tokens.bg.surface }, cardShadow]}>
+        <Text style={[Type.displayTitle, { color: tokens.text.primary }]}>{pendingMeal.name}</Text>
+        <Text style={[Type.textSm, { color: tokens.text.secondary }, styles.itemCount]}>
           {pendingMeal.items.length} item{pendingMeal.items.length !== 1 ? 's' : ''}
         </Text>
       </View>
 
       {/* Multiplier */}
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.sectionLabel, { color: colors.placeholder }]}>Quantity</Text>
+      <View style={[styles.card, { backgroundColor: tokens.bg.surface }, cardShadow]}>
+        <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.sectionLabel]}>QUANTITY</Text>
         <View style={styles.multiplierRow}>
           <TextInput
             style={[
               styles.multiplierInput,
-              { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+              {
+                color: tokens.text.primary,
+                backgroundColor: tokens.bg.surfaceMuted,
+                fontFamily: 'JetBrainsMono_500Medium',
+              },
             ]}
             value={multiplierText}
             onChangeText={setMultiplierText}
@@ -131,38 +142,38 @@ export default function ConfirmMealScreen() {
             selectTextOnFocus
             maxLength={4}
           />
-          <Text style={[styles.multiplierLabel, { color: colors.text }]}>× serving</Text>
+          <Text style={[Type.textLg, { color: tokens.text.primary }]}>× serving</Text>
         </View>
       </View>
 
       {/* Totals */}
       {scaledTotals && (
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionLabel, { color: colors.placeholder }]}>Totals</Text>
-          <Text style={[styles.totalCalories, { color: colors.text }]}>
+        <View style={[styles.card, { backgroundColor: tokens.bg.surface }, cardShadow]}>
+          <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.sectionLabel]}>TOTALS</Text>
+          <Text style={[Type.displayHero, { color: tokens.text.primary }]}>
             {scaledTotals.calories}
-            <Text style={[styles.kcalUnit, { color: colors.placeholder }]}> kcal</Text>
+            <Text style={[Type.textLg, { color: tokens.text.secondary }]}> kcal</Text>
           </Text>
-          <Text style={[styles.macroLine, { color: colors.placeholder }]}>
+          <Text style={[Type.monoSm, { color: tokens.text.secondary }, styles.macroLine]}>
             P {scaledTotals.proteinG}g · C {scaledTotals.carbsG}g · F {scaledTotals.fatG}g
           </Text>
         </View>
       )}
 
       {/* Item breakdown */}
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.sectionLabel, { color: colors.placeholder }]}>Items</Text>
+      <View style={[styles.card, { backgroundColor: tokens.bg.surface }, cardShadow]}>
+        <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.sectionLabel]}>ITEMS</Text>
         {itemRows}
       </View>
 
       {/* Add button */}
       <TouchableOpacity
-        style={[styles.addButton, { backgroundColor: canAdd ? colors.tint : colors.border }]}
+        style={[styles.addButton, { backgroundColor: canAdd ? tokens.accent.primary : tokens.bg.surfaceMuted }]}
         onPress={handleAddToLog}
         disabled={!canAdd}
         activeOpacity={0.8}
       >
-        <Text style={[styles.addButtonText, { color: canAdd ? '#FFFFFF' : colors.placeholder }]}>
+        <Text style={[Type.textLg, { color: canAdd ? '#FFFFFF' : tokens.text.tertiary }]}>
           Add to Log
         </Text>
       </TouchableOpacity>
@@ -171,7 +182,7 @@ export default function ConfirmMealScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: tokens.bg.primary }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Stack.Screen options={screenOptions} />
@@ -191,31 +202,21 @@ const styles = StyleSheet.create({
   centered: { alignItems: 'center', justifyContent: 'center', padding: SPACING.xl },
   listContent: { flexGrow: 1 },
   inner: { padding: SPACING.md, gap: SPACING.md },
-  card: { borderRadius: BORDER_RADIUS.lg, borderWidth: 1, padding: SPACING.lg },
-  mealName: { fontSize: FONT_SIZE.xl, fontWeight: '700' },
-  itemCount: { fontSize: FONT_SIZE.sm, marginTop: SPACING.xs },
+  card: { borderRadius: BORDER_RADIUS.lg, padding: SPACING.cardPad },
+  itemCount: { marginTop: SPACING.xs },
   sectionLabel: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
     marginBottom: SPACING.sm,
   },
   multiplierRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   multiplierInput: {
     width: 80,
     height: 48,
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.lg,
     paddingHorizontal: SPACING.md,
-    fontSize: FONT_SIZE.xl,
-    fontWeight: '600',
+    fontSize: 24,
     textAlign: 'center',
   },
-  multiplierLabel: { fontSize: FONT_SIZE.lg, fontWeight: '500' },
-  totalCalories: { fontSize: FONT_SIZE.xxxl, fontWeight: '700' },
-  kcalUnit: { fontSize: FONT_SIZE.lg, fontWeight: '400' },
-  macroLine: { fontSize: FONT_SIZE.sm, marginTop: SPACING.xs },
+  macroLine: { marginTop: SPACING.xs },
   itemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -223,15 +224,13 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  itemName: { fontSize: FONT_SIZE.md, flex: 1, marginRight: SPACING.sm },
-  itemCalories: { fontSize: FONT_SIZE.sm },
+  itemName: { flex: 1, marginRight: SPACING.sm },
   addButton: {
     height: 56,
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.button,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: SPACING.sm,
   },
-  addButtonText: { fontSize: FONT_SIZE.lg, fontWeight: '700' },
-  errorText: { fontSize: FONT_SIZE.md, textAlign: 'center' },
+  errorText: { textAlign: 'center' },
 });

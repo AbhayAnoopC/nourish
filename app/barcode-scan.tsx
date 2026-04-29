@@ -3,9 +3,9 @@ import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { Stack, router } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { lookupByBarcode as offLookup } from '@/services/openFoodFacts';
 import { lookupByBarcode as usdaLookup } from '@/services/usda';
 import { useLogFlowStore } from '@/store/logFlowStore';
@@ -13,8 +13,7 @@ import { useLogFlowStore } from '@/store/logFlowStore';
 type ScanState = 'scanning' | 'loading' | 'not_found' | 'error';
 
 export default function BarcodeScanScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanState, setScanState] = useState<ScanState>('scanning');
@@ -62,34 +61,36 @@ export default function BarcodeScanScreen() {
 
   const screenOptions = {
     title: 'Scan Barcode',
-    headerStyle: { backgroundColor: colors.card },
-    headerTintColor: colors.text,
+    headerStyle: { backgroundColor: tokens.bg.surface },
+    headerTintColor: tokens.text.primary,
     headerShadowVisible: false,
   };
 
   if (!permission) {
-    return <View style={[styles.container, { backgroundColor: colors.background }]} />;
+    return <View style={[styles.container, { backgroundColor: tokens.bg.primary }]} />;
   }
 
   if (!permission.granted) {
     const canAsk = permission.canAskAgain;
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, styles.centered, { backgroundColor: tokens.bg.primary }]}>
         <Stack.Screen options={screenOptions} />
-        <Text style={[styles.permissionTitle, { color: colors.text }]}>Camera Access Needed</Text>
-        <Text style={[styles.permissionBody, { color: colors.placeholder }]}>
+        <Text style={[Type.displayTitle, { color: tokens.text.primary }, styles.permissionTitle]}>
+          Camera Access Needed
+        </Text>
+        <Text style={[Type.textMd, { color: tokens.text.secondary }, styles.permissionBody]}>
           Allow camera access to scan product barcodes.
         </Text>
         {canAsk ? (
           <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: colors.tint }]}
+            style={[styles.primaryButton, { backgroundColor: tokens.accent.primary }]}
             onPress={requestPermission}
             activeOpacity={0.8}
           >
-            <Text style={styles.primaryButtonText}>Allow Camera</Text>
+            <Text style={[Type.textMd, styles.primaryButtonText]}>Allow Camera</Text>
           </TouchableOpacity>
         ) : (
-          <Text style={[styles.settingsHint, { color: colors.placeholder }]}>
+          <Text style={[Type.textSm, { color: tokens.text.secondary }, styles.settingsHint]}>
             Camera permission was denied. Please enable it in Settings.
           </Text>
         )}
@@ -110,51 +111,51 @@ export default function BarcodeScanScreen() {
 
       <View style={styles.statusArea}>
         {isScanning && (
-          <Text style={styles.hintText}>Point at a barcode</Text>
+          <Text style={[Type.textMd, styles.hintText]}>Point at a barcode</Text>
         )}
 
         {scanState === 'loading' && (
-          <View style={[styles.feedbackCard, { backgroundColor: colors.card }]}>
-            <ActivityIndicator size="small" color={colors.tint} />
-            <Text style={[styles.feedbackText, { color: colors.text }]}>Looking up product…</Text>
+          <View style={[styles.feedbackCard, { backgroundColor: tokens.bg.surface }]}>
+            <ActivityIndicator size="small" color={tokens.accent.primary} />
+            <Text style={[Type.textMd, { color: tokens.text.primary }]}>Looking up product…</Text>
           </View>
         )}
 
         {scanState === 'not_found' && (
-          <View style={[styles.feedbackCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.feedbackTitle, { color: colors.text }]}>Product not found</Text>
-            <Text style={[styles.feedbackBody, { color: colors.placeholder }]}>
+          <View style={[styles.feedbackCard, { backgroundColor: tokens.bg.surface }]}>
+            <Text style={[Type.textXl, { color: tokens.text.primary }]}>Product not found</Text>
+            <Text style={[Type.textSm, { color: tokens.text.secondary }, styles.feedbackBody]}>
               This barcode isn't in our database.
             </Text>
             <View style={styles.buttonRow}>
               <TouchableOpacity
-                style={[styles.secondaryButton, { borderColor: colors.tint }]}
+                style={[styles.secondaryButton, { borderColor: tokens.accent.primary }]}
                 onPress={handleReset}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.secondaryButtonText, { color: colors.tint }]}>Scan Again</Text>
+                <Text style={[Type.textMd, { color: tokens.accent.primary }]}>Scan Again</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.primaryButton, { backgroundColor: colors.tint }]}
+                style={[styles.primaryButton, { backgroundColor: tokens.accent.primary }]}
                 onPress={handleManualSearch}
                 activeOpacity={0.8}
               >
-                <Text style={styles.primaryButtonText}>Manual Search</Text>
+                <Text style={[Type.textMd, styles.primaryButtonText]}>Manual Search</Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
 
         {scanState === 'error' && (
-          <View style={[styles.feedbackCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.feedbackTitle, { color: colors.danger }]}>Error</Text>
-            <Text style={[styles.feedbackBody, { color: colors.placeholder }]}>{errorMessage}</Text>
+          <View style={[styles.feedbackCard, { backgroundColor: tokens.bg.surface }]}>
+            <Text style={[Type.textXl, { color: tokens.status.danger }]}>Error</Text>
+            <Text style={[Type.textSm, { color: tokens.text.secondary }, styles.feedbackBody]}>{errorMessage}</Text>
             <TouchableOpacity
-              style={[styles.primaryButton, { backgroundColor: colors.tint }]}
+              style={[styles.primaryButton, { backgroundColor: tokens.accent.primary }]}
               onPress={handleReset}
               activeOpacity={0.8}
             >
-              <Text style={styles.primaryButtonText}>Try Again</Text>
+              <Text style={[Type.textMd, styles.primaryButtonText]}>Try Again</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -245,8 +246,6 @@ const styles = StyleSheet.create({
   },
   hintText: {
     color: '#FFFFFF',
-    fontSize: FONT_SIZE.md,
-    fontWeight: '500',
     textShadowColor: 'rgba(0,0,0,0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
@@ -258,16 +257,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: SPACING.sm,
   },
-  feedbackText: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '500',
-  },
-  feedbackTitle: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '700',
-  },
   feedbackBody: {
-    fontSize: FONT_SIZE.sm,
     textAlign: 'center',
   },
   buttonRow: {
@@ -278,41 +268,30 @@ const styles = StyleSheet.create({
   primaryButton: {
     height: 44,
     paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.button,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: FONT_SIZE.md,
-    fontWeight: '700',
   },
   secondaryButton: {
     height: 44,
     paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.button,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  secondaryButtonText: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '600',
-  },
   permissionTitle: {
-    fontSize: FONT_SIZE.xl,
-    fontWeight: '700',
     textAlign: 'center',
     marginBottom: SPACING.sm,
   },
   permissionBody: {
-    fontSize: FONT_SIZE.md,
     textAlign: 'center',
     marginBottom: SPACING.lg,
-    lineHeight: FONT_SIZE.md * 1.5,
   },
   settingsHint: {
-    fontSize: FONT_SIZE.sm,
     textAlign: 'center',
     marginTop: SPACING.md,
   },
