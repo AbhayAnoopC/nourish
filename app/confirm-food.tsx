@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTokens } from '@/hooks/useTokens';
 import { MacroBar } from '@/components/MacroBar';
-import Colors from '@/constants/Colors';
+import { Type } from '@/constants/Typography';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { useLogFlowStore } from '@/store/logFlowStore';
 import { useDailyLogStore } from '@/store/dailyLogStore';
@@ -27,8 +27,7 @@ function generateId(): string {
 }
 
 export default function ConfirmFoodScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const insets = useSafeAreaInsets();
   const pendingItem = useLogFlowStore((s) => s.pendingItem);
   const clearPendingItem = useLogFlowStore((s) => s.clearPendingItem);
@@ -114,9 +113,9 @@ export default function ConfirmFoodScreen() {
 
   if (!pendingItem) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, styles.centered, { backgroundColor: tokens.bg.primary }]}>
         <Stack.Screen options={{ title: 'Confirm' }} />
-        <Text style={[styles.errorText, { color: colors.danger }]}>
+        <Text style={[styles.errorText, { color: tokens.status.danger }]}>
           No food selected. Please go back and choose a food.
         </Text>
       </View>
@@ -127,14 +126,14 @@ export default function ConfirmFoodScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: tokens.bg.primary }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Stack.Screen
         options={{
           title: 'Confirm',
-          headerStyle: { backgroundColor: colors.card },
-          headerTintColor: colors.text,
+          headerStyle: { backgroundColor: tokens.bg.surface },
+          headerTintColor: tokens.text.primary,
           headerShadowVisible: false,
         }}
       />
@@ -146,25 +145,26 @@ export default function ConfirmFoodScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Food identity */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.foodName, { color: colors.text }]} numberOfLines={3}>
+        <View style={[styles.card, { backgroundColor: tokens.bg.surface }]}>
+          <Text style={[styles.foodName, Type.textXl, { color: tokens.text.primary }]} numberOfLines={3}>
             {pendingItem.foodName}
           </Text>
           {pendingItem.brandName ? (
-            <Text style={[styles.brandName, { color: colors.placeholder }]}>
+            <Text style={[styles.brandName, Type.textSm, { color: tokens.text.secondary }]}>
               {pendingItem.brandName}
             </Text>
           ) : null}
         </View>
 
         {/* Quantity input */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionLabel, { color: colors.placeholder }]}>Quantity</Text>
+        <View style={[styles.card, { backgroundColor: tokens.bg.surface }]}>
+          <Text style={[styles.sectionLabel, Type.textXs, { color: tokens.text.secondary }]}>Quantity</Text>
           <View style={styles.quantityRow}>
             <TextInput
               style={[
                 styles.quantityInput,
-                { color: colors.text, borderColor: colors.border, backgroundColor: colors.background },
+                Type.textXl,
+                { color: tokens.text.primary, backgroundColor: tokens.bg.primary },
               ]}
               value={quantityText}
               onChangeText={setQuantityText}
@@ -172,18 +172,18 @@ export default function ConfirmFoodScreen() {
               selectTextOnFocus
               maxLength={6}
             />
-            <Text style={[styles.servingUnit, { color: colors.text }]}>
+            <Text style={[styles.servingUnit, Type.textLg, { color: tokens.text.primary }]}>
               × {pendingItem.servingSize}
             </Text>
           </View>
         </View>
 
         {/* Calorie total */}
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.sectionLabel, { color: colors.placeholder }]}>Calories</Text>
-          <Text style={[styles.calorieValue, { color: colors.text }]}>
+        <View style={[styles.card, { backgroundColor: tokens.bg.surface }]}>
+          <Text style={[styles.sectionLabel, Type.textXs, { color: tokens.text.secondary }]}>Calories</Text>
+          <Text style={[styles.calorieValue, Type.displayHero, { color: tokens.text.primary }]}>
             {scaled ? scaled.calories : '—'}
-            <Text style={[styles.calorieUnit, { color: colors.placeholder }]}> kcal</Text>
+            <Text style={[styles.calorieUnit, Type.textLg, { color: tokens.text.secondary }]}> kcal</Text>
           </Text>
         </View>
 
@@ -199,11 +199,11 @@ export default function ConfirmFoodScreen() {
         {/* Save as Meal button */}
         {scaled && (
           <TouchableOpacity
-            style={[styles.saveButton, { borderColor: colors.tint }]}
+            style={[styles.saveButton, { borderColor: tokens.accent.primary }]}
             onPress={handleSaveAsMeal}
             activeOpacity={0.8}
           >
-            <Text style={[styles.saveButtonText, { color: colors.tint }]}>Save as Meal</Text>
+            <Text style={[styles.saveButtonText, Type.textMd, { color: tokens.accent.primary }]}>Save as Meal</Text>
           </TouchableOpacity>
         )}
 
@@ -211,13 +211,13 @@ export default function ConfirmFoodScreen() {
         <TouchableOpacity
           style={[
             styles.addButton,
-            { backgroundColor: canAdd ? colors.tint : colors.border },
+            { backgroundColor: canAdd ? tokens.accent.primary : tokens.bg.surfaceMuted },
           ]}
           onPress={handleAddToLog}
           disabled={!canAdd}
           activeOpacity={0.8}
         >
-          <Text style={[styles.addButtonText, { color: canAdd ? '#FFFFFF' : colors.placeholder }]}>
+          <Text style={[styles.addButtonText, Type.textLg, { color: canAdd ? '#FFFFFF' : tokens.text.tertiary }]}>
             Add to Log
           </Text>
         </TouchableOpacity>
@@ -226,30 +226,30 @@ export default function ConfirmFoodScreen() {
       {/* Save as Meal modal */}
       <Modal visible={saveModalVisible} transparent animationType="fade">
         <View style={styles.modalBackdrop}>
-          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Save as Meal</Text>
+          <View style={[styles.modalCard, { backgroundColor: tokens.bg.surface }]}>
+            <Text style={[styles.modalTitle, Type.textLg, { color: tokens.text.primary }]}>Save as Meal</Text>
             <TextInput
-              style={[styles.modalInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              style={[styles.modalInput, Type.textMd, { color: tokens.text.primary, backgroundColor: tokens.bg.primary }]}
               value={mealNameText}
               onChangeText={setMealNameText}
               autoFocus
               selectTextOnFocus
               maxLength={60}
               placeholder="Meal name"
-              placeholderTextColor={colors.placeholder}
+              placeholderTextColor={tokens.text.secondary}
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalBtn, { borderColor: colors.border }]}
+                style={[styles.modalBtn, { borderColor: tokens.border.hairline }]}
                 onPress={() => setSaveModalVisible(false)}
               >
-                <Text style={[styles.modalBtnText, { color: colors.placeholder }]}>Cancel</Text>
+                <Text style={[styles.modalBtnText, Type.textMd, { color: tokens.text.secondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalBtn, styles.modalBtnPrimary, { backgroundColor: colors.tint }]}
+                style={[styles.modalBtn, styles.modalBtnPrimary, { backgroundColor: tokens.accent.primary }]}
                 onPress={handleSaveConfirm}
               >
-                <Text style={[styles.modalBtnText, { color: '#FFFFFF' }]}>Save</Text>
+                <Text style={[styles.modalBtnText, Type.textMd, { color: '#FFFFFF' }]}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -274,23 +274,21 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
     padding: SPACING.lg,
+    shadowColor: '#1A1A1A',
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   foodName: {
-    fontSize: FONT_SIZE.xl,
-    fontWeight: '700',
-    lineHeight: FONT_SIZE.xl * 1.3,
+    marginTop: SPACING.xs,
   },
   brandName: {
-    fontSize: FONT_SIZE.sm,
     marginTop: SPACING.xs,
   },
   sectionLabel: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
     marginBottom: SPACING.sm,
   },
   quantityRow: {
@@ -302,37 +300,25 @@ const styles = StyleSheet.create({
     width: 80,
     height: 48,
     borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
     paddingHorizontal: SPACING.md,
-    fontSize: FONT_SIZE.xl,
-    fontWeight: '600',
     textAlign: 'center',
   },
   servingUnit: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '500',
   },
   calorieValue: {
-    fontSize: FONT_SIZE.xxxl,
-    fontWeight: '700',
   },
   calorieUnit: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '400',
   },
   addButton: {
     height: 56,
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.button,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: SPACING.sm,
   },
   addButtonText: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '700',
   },
   errorText: {
-    fontSize: FONT_SIZE.md,
     textAlign: 'center',
   },
   saveButton: {
@@ -343,8 +329,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveButtonText: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '600',
   },
   modalBackdrop: {
     flex: 1,
@@ -360,15 +344,11 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
   },
   modalTitle: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '700',
   },
   modalInput: {
     height: 48,
     borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
     paddingHorizontal: SPACING.md,
-    fontSize: FONT_SIZE.md,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -387,7 +367,5 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   modalBtnText: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '600',
   },
 });
