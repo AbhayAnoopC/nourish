@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   },
   fabPosition: {
     position: 'absolute',
-    top: -34,
+    top: -64,
     left: 0,
     right: 0,
     alignItems: 'center',
