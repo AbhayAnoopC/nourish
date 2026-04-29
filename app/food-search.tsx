@@ -10,17 +10,16 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTokens } from '@/hooks/useTokens';
 import { FoodSearchResultItem } from '@/components/FoodSearchResultItem';
-import Colors from '@/constants/Colors';
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { useFoodSearch } from '@/hooks/useFoodSearch';
 import { useLogFlowStore } from '@/store/logFlowStore';
 import { SearchResult } from '@/types';
 
 export default function FoodSearchScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const insets = useSafeAreaInsets();
   const { query, results, loading, error, setQuery, clear } = useFoodSearch();
   const setPendingItem = useLogFlowStore((s) => s.setPendingItem);
@@ -44,23 +43,23 @@ export default function FoodSearchScreen() {
   const showResults = !loading && results.length > 0;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: tokens.bg.primary }]}>
       <Stack.Screen
         options={{
           title: 'Search Food',
-          headerStyle: { backgroundColor: colors.card },
-          headerTintColor: colors.text,
+          headerStyle: { backgroundColor: tokens.bg.surface },
+          headerTintColor: tokens.text.primary,
           headerShadowVisible: false,
         }}
       />
 
       {/* Search bar */}
-      <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={[styles.searchBar, { backgroundColor: tokens.bg.surface }]}>
         <TextInput
           ref={inputRef}
-          style={[styles.input, { color: colors.text }]}
+          style={[Type.textMd, styles.input, { color: tokens.text.primary }]}
           placeholder="Search foods…"
-          placeholderTextColor={colors.placeholder}
+          placeholderTextColor={tokens.text.tertiary}
           value={query}
           onChangeText={setQuery}
           autoFocus
@@ -71,7 +70,7 @@ export default function FoodSearchScreen() {
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={handleClear} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text style={[styles.clearButton, { color: colors.placeholder }]}>{'\u00d7'}</Text>
+            <Text style={[styles.clearButton, { color: tokens.text.secondary }]}>{'×'}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -79,14 +78,14 @@ export default function FoodSearchScreen() {
       {/* States */}
       {loading && (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.tint} />
-          <Text style={[styles.hintText, { color: colors.placeholder }]}>Searching…</Text>
+          <ActivityIndicator size="large" color={tokens.accent.primary} />
+          <Text style={[Type.textMd, { color: tokens.text.secondary }, styles.hintText]}>Searching…</Text>
         </View>
       )}
 
       {showEmptyHint && (
         <View style={styles.centered}>
-          <Text style={[styles.hintText, { color: colors.placeholder }]}>
+          <Text style={[Type.textMd, { color: tokens.text.secondary }, styles.hintText]}>
             Type at least 2 characters to search USDA and Open Food Facts.
           </Text>
         </View>
@@ -94,7 +93,7 @@ export default function FoodSearchScreen() {
 
       {showError && (
         <View style={styles.centered}>
-          <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
+          <Text style={[Type.textMd, { color: tokens.status.danger }, styles.errorText]}>{error}</Text>
         </View>
       )}
 
@@ -122,14 +121,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: SPACING.md,
     marginVertical: SPACING.md,
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.lg,
     paddingHorizontal: SPACING.md,
+    height: 48,
   },
   input: {
     flex: 1,
-    height: 44,
-    fontSize: FONT_SIZE.md,
+    height: 48,
   },
   clearButton: {
     fontSize: 22,
@@ -143,14 +141,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.xl,
   },
   hintText: {
-    fontSize: FONT_SIZE.md,
     textAlign: 'center',
-    lineHeight: FONT_SIZE.md * 1.6,
     marginTop: SPACING.md,
   },
   errorText: {
-    fontSize: FONT_SIZE.md,
     textAlign: 'center',
-    lineHeight: FONT_SIZE.md * 1.6,
   },
 });
