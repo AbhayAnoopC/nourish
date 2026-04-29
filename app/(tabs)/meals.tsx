@@ -2,17 +2,16 @@ import { useCallback, useMemo } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTokens } from '@/hooks/useTokens';
 import { SavedMealCard } from '@/components/SavedMealCard';
-import Colors from '@/constants/Colors';
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { useSavedMeals } from '@/hooks/useSavedMeals';
 import { useLogFlowStore } from '@/store/logFlowStore';
 import type { SavedMeal } from '@/types';
 
 export default function MealsScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const insets = useSafeAreaInsets();
   const { query, setQuery, filteredMeals, renameMeal, deleteMeal } = useSavedMeals();
   const setPendingMeal = useLogFlowStore((s) => s.setPendingMeal);
@@ -43,37 +42,42 @@ export default function MealsScreen() {
   const listHeader = useMemo(
     () => (
       <View style={[styles.headerSection, { paddingTop: insets.top + SPACING.md }]}>
-        <Text style={[styles.heading, { color: colors.text }]}>Saved Meals</Text>
+        <Text style={[Type.displayTitle, { color: tokens.text.primary }, styles.heading]}>
+          Saved Meals
+        </Text>
         <TextInput
           style={[
+            Type.textMd,
             styles.searchInput,
-            { backgroundColor: colors.card, borderColor: colors.border, color: colors.text },
+            { backgroundColor: tokens.bg.surface, color: tokens.text.primary },
           ]}
-          placeholder="Search meals\u2026"
-          placeholderTextColor={colors.placeholder}
+          placeholder="Search meals…"
+          placeholderTextColor={tokens.text.tertiary}
           value={query}
           onChangeText={setQuery}
           clearButtonMode="while-editing"
         />
       </View>
     ),
-    [insets.top, colors, query, setQuery],
+    [insets.top, tokens, query, setQuery],
   );
 
   const emptyComponent = useMemo(
     () => (
       <View style={styles.empty}>
-        <Text style={[styles.emptyTitle, { color: colors.text }]}>No saved meals yet</Text>
-        <Text style={[styles.emptyBody, { color: colors.placeholder }]}>
-          When you log a food item, tap \u201cSave as Meal\u201d to store it here for quick re-logging.
+        <Text style={[Type.displayTitle, { color: tokens.text.primary }, styles.emptyTitle]}>
+          No saved meals yet
+        </Text>
+        <Text style={[Type.textMd, { color: tokens.text.secondary }, styles.emptyBody]}>
+          When you log a food item, tap "Save as Meal" to store it here for quick re-logging.
         </Text>
       </View>
     ),
-    [colors],
+    [tokens],
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: tokens.bg.primary }]}>
       <FlatList<SavedMeal>
         data={filteredMeals}
         keyExtractor={(item) => item.id}
@@ -89,7 +93,7 @@ export default function MealsScreen() {
         ListEmptyComponent={emptyComponent}
         contentContainerStyle={[
           styles.listContent,
-          { paddingBottom: insets.bottom + SPACING.xl },
+          { paddingBottom: insets.bottom + 120 },
         ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -106,16 +110,12 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.md,
   },
   heading: {
-    fontSize: FONT_SIZE.xxl,
-    fontWeight: '700',
     marginBottom: SPACING.md,
   },
   searchInput: {
-    height: 44,
+    height: 48,
     borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
     paddingHorizontal: SPACING.md,
-    fontSize: FONT_SIZE.md,
   },
   empty: {
     paddingHorizontal: SPACING.xl,
@@ -123,13 +123,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyTitle: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '600',
     marginBottom: SPACING.sm,
   },
   emptyBody: {
-    fontSize: FONT_SIZE.md,
     textAlign: 'center',
-    lineHeight: FONT_SIZE.md * 1.5,
   },
 });

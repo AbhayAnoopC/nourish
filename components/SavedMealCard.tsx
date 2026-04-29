@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import type { SavedMeal } from '@/types';
 
 interface Props {
@@ -21,8 +21,7 @@ interface Props {
 }
 
 export function SavedMealCard({ meal, onPress, onRename, onDelete }: Props) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const [renameVisible, setRenameVisible] = useState(false);
   const [renameText, setRenameText] = useState('');
 
@@ -59,30 +58,44 @@ export function SavedMealCard({ meal, onPress, onRename, onDelete }: Props) {
   return (
     <>
       <TouchableOpacity
-        style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+        style={[
+          styles.card,
+          {
+            backgroundColor: tokens.bg.surface,
+            shadowColor: '#1A1A1A',
+            shadowOpacity: 0.04,
+            shadowRadius: 16,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 2,
+          },
+        ]}
         onPress={() => onPress(meal)}
         onLongPress={handleLongPress}
         activeOpacity={0.7}
       >
         <View style={styles.left}>
-          <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>
+          <Text style={[Type.textLg, { color: tokens.text.primary }, styles.name]} numberOfLines={1}>
             {meal.name}
           </Text>
-          <Text style={[styles.macros, { color: colors.placeholder }]}>{macroSummary}</Text>
+          <Text style={[Type.textSm, { color: tokens.text.secondary }]}>{macroSummary}</Text>
         </View>
-        <Text style={[styles.calories, { color: colors.tint }]}>
-          {meal.totalCalories}
-          <Text style={[styles.kcal, { color: colors.placeholder }]}> kcal</Text>
-        </Text>
+        <View style={styles.right}>
+          <Text style={[Type.monoLg, { color: tokens.accent.primary }]}>{meal.totalCalories}</Text>
+          <Text style={[Type.monoSm, { color: tokens.text.tertiary }]}>kcal</Text>
+        </View>
       </TouchableOpacity>
 
       {/* Cross-platform rename modal */}
       <Modal visible={renameVisible} transparent animationType="fade">
         <View style={styles.modalBackdrop}>
-          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Rename Meal</Text>
+          <View style={[styles.modalCard, { backgroundColor: tokens.bg.surface }]}>
+            <Text style={[Type.displayTitle, { color: tokens.text.primary }]}>Rename Meal</Text>
             <TextInput
-              style={[styles.modalInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              style={[
+                Type.textMd,
+                styles.modalInput,
+                { color: tokens.text.primary, backgroundColor: tokens.bg.surfaceMuted },
+              ]}
               value={renameText}
               onChangeText={setRenameText}
               autoFocus
@@ -91,16 +104,16 @@ export function SavedMealCard({ meal, onPress, onRename, onDelete }: Props) {
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalBtn, { borderColor: colors.border }]}
+                style={[styles.modalBtn, { borderColor: tokens.border.hairline }]}
                 onPress={() => setRenameVisible(false)}
               >
-                <Text style={[styles.modalBtnText, { color: colors.placeholder }]}>Cancel</Text>
+                <Text style={[Type.textMd, { color: tokens.text.secondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalBtn, styles.modalBtnPrimary, { backgroundColor: colors.tint }]}
+                style={[styles.modalBtn, styles.modalBtnPrimary, { backgroundColor: tokens.accent.primary }]}
                 onPress={handleRenameConfirm}
               >
-                <Text style={[styles.modalBtnText, { color: '#FFFFFF' }]}>Save</Text>
+                <Text style={[Type.textMd, { color: '#FFFFFF' }]}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -116,8 +129,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    padding: SPACING.md,
+    padding: SPACING.cardPad,
     marginHorizontal: SPACING.md,
     marginBottom: SPACING.sm,
   },
@@ -126,24 +138,14 @@ const styles = StyleSheet.create({
     marginRight: SPACING.md,
   },
   name: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '600',
     marginBottom: 2,
   },
-  macros: {
-    fontSize: FONT_SIZE.sm,
-  },
-  calories: {
-    fontSize: FONT_SIZE.xl,
-    fontWeight: '700',
-  },
-  kcal: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '400',
+  right: {
+    alignItems: 'flex-end',
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(26,26,26,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: SPACING.xl,
@@ -154,16 +156,10 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     gap: SPACING.md,
   },
-  modalTitle: {
-    fontSize: FONT_SIZE.lg,
-    fontWeight: '700',
-  },
   modalInput: {
     height: 48,
-    borderRadius: BORDER_RADIUS.md,
-    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.lg,
     paddingHorizontal: SPACING.md,
-    fontSize: FONT_SIZE.md,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -173,16 +169,12 @@ const styles = StyleSheet.create({
   modalBtn: {
     height: 40,
     paddingHorizontal: SPACING.lg,
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.button,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalBtnPrimary: {
     borderWidth: 0,
-  },
-  modalBtnText: {
-    fontSize: FONT_SIZE.md,
-    fontWeight: '600',
   },
 });
