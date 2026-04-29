@@ -9,9 +9,9 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { useAmazfit } from '@/hooks/useAmazfit';
 import type { AmazfitConnectionTier } from '@/types';
 
@@ -24,8 +24,7 @@ const TIER_LABEL: Record<AmazfitConnectionTier, string> = {
 };
 
 export default function SettingsScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const insets = useSafeAreaInsets();
   const { connectionTier, syncing, lastSyncedAt, connectZepp, connectHealthKit, setManual, disconnect } = useAmazfit();
   const [connecting, setConnecting] = useState(false);
@@ -66,29 +65,41 @@ export default function SettingsScreen() {
 
   const isConnected = connectionTier !== 'none';
 
+  const cardShadow = {
+    shadowColor: '#1A1A1A',
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  } as const;
+
   const statusSection = (
-    <View style={[styles.statusCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View style={[styles.statusCard, { backgroundColor: tokens.bg.surface }, cardShadow]}>
       <View style={styles.statusRow}>
-        <Text style={[styles.statusLabel, { color: colors.placeholder }]}>Status</Text>
-        <View style={[styles.badge, { backgroundColor: isConnected ? colors.success : colors.border }]}>
-          <Text style={[styles.badgeText, { color: isConnected ? '#FFFFFF' : colors.placeholder }]}>
+        <Text style={[Type.textXs, { color: tokens.text.secondary }]}>STATUS</Text>
+        <View style={[styles.badge, { backgroundColor: isConnected ? tokens.status.success : tokens.bg.surfaceMuted }]}>
+          <Text style={[Type.textXs, { color: isConnected ? '#FFFFFF' : tokens.text.secondary }]}>
             {isConnected ? 'Connected' : 'Not connected'}
           </Text>
         </View>
       </View>
-      <Text style={[styles.tierName, { color: colors.text }]}>{TIER_LABEL[connectionTier]}</Text>
+      <Text style={[Type.textLg, { color: tokens.text.primary }]}>{TIER_LABEL[connectionTier]}</Text>
       {isConnected && (
-        <Text style={[styles.syncTime, { color: colors.placeholder }]}>
-          Last synced: {syncing ? 'syncing…' : lastSyncLabel}
-          {syncing && <ActivityIndicator size="small" color={colors.tint} />}
-        </Text>
+        <View style={styles.syncRow}>
+          <Text style={[Type.monoSm, { color: tokens.text.secondary }]}>
+            Last synced: {syncing ? 'syncing…' : lastSyncLabel}
+          </Text>
+          {syncing && <ActivityIndicator size="small" color={tokens.accent.primary} />}
+        </View>
       )}
     </View>
   );
 
   const connectSection = (
     <View style={styles.optionList}>
-      <Text style={[styles.sectionTitle, { color: colors.placeholder }]}>Connection method</Text>
+      <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.sectionTitle]}>
+        CONNECTION METHOD
+      </Text>
 
       {(['zepp', 'healthconnect', 'applehealth', 'manual'] as const).map((tier) => {
         const isActive = connectionTier === tier;
@@ -98,8 +109,8 @@ export default function SettingsScreen() {
             style={[
               styles.optionCard,
               {
-                backgroundColor: colors.card,
-                borderColor: isActive ? colors.tint : colors.border,
+                backgroundColor: tokens.bg.surface,
+                borderBottomColor: tokens.border.hairline,
               },
             ]}
             onPress={() => {
@@ -111,8 +122,8 @@ export default function SettingsScreen() {
             activeOpacity={0.7}
           >
             <View style={styles.optionInfo}>
-              <Text style={[styles.optionTitle, { color: colors.text }]}>{TIER_LABEL[tier]}</Text>
-              <Text style={[styles.optionDesc, { color: colors.placeholder }]}>
+              <Text style={[Type.textLg, { color: tokens.text.primary }]}>{TIER_LABEL[tier]}</Text>
+              <Text style={[Type.textSm, { color: tokens.text.secondary }]}>
                 {tier === 'zepp' && 'OAuth via Zepp app — requires ZEPP_CLIENT_ID'}
                 {tier === 'healthconnect' && 'Android Health Connect — requires dev build'}
                 {tier === 'applehealth' && 'iOS Apple Health — requires dev build'}
@@ -120,7 +131,7 @@ export default function SettingsScreen() {
               </Text>
             </View>
             {isActive && (
-              <View style={[styles.activeDot, { backgroundColor: colors.tint }]} />
+              <View style={[styles.activeDot, { backgroundColor: tokens.accent.primary }]} />
             )}
           </TouchableOpacity>
         );
@@ -130,38 +141,44 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: tokens.bg.primary }]}
       contentContainerStyle={[
         styles.content,
-        { paddingTop: insets.top + SPACING.md, paddingBottom: insets.bottom + SPACING.xl },
+        { paddingTop: insets.top + SPACING.md, paddingBottom: insets.bottom + 120 },
       ]}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={[styles.heading, { color: colors.text }]}>Settings</Text>
+      <Text style={[Type.displayTitle, { color: tokens.text.primary }, styles.heading]}>
+        Settings
+      </Text>
 
-      <Text style={[styles.sectionHeading, { color: colors.placeholder }]}>
-        Amazfit / Watch
+      <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.sectionHeading]}>
+        AMAZFIT / WATCH
       </Text>
       {statusSection}
       {connectSection}
       {isConnected && (
         <TouchableOpacity
-          style={[styles.disconnectBtn, { borderColor: colors.danger }]}
+          style={[styles.disconnectBtn, { borderColor: tokens.status.danger }]}
           onPress={handleDisconnect}
           activeOpacity={0.8}
         >
-          <Text style={[styles.disconnectBtnText, { color: colors.danger }]}>Disconnect</Text>
+          <Text style={[Type.textMd, { color: tokens.status.danger }]}>Disconnect</Text>
         </TouchableOpacity>
       )}
 
-      <Text style={[styles.sectionHeading, { color: colors.placeholder }]}>Profile</Text>
-      <View style={[styles.comingSoon, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.comingSoonText, { color: colors.placeholder }]}>Coming in step 15 (polish)</Text>
+      <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.sectionHeading]}>
+        PROFILE
+      </Text>
+      <View style={[styles.comingSoon, { backgroundColor: tokens.bg.surface }, cardShadow]}>
+        <Text style={[Type.textSm, { color: tokens.text.secondary }]}>Coming soon</Text>
       </View>
 
-      <Text style={[styles.sectionHeading, { color: colors.placeholder }]}>Daily Targets</Text>
-      <View style={[styles.comingSoon, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.comingSoonText, { color: colors.placeholder }]}>Coming in step 15 (polish)</Text>
+      <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.sectionHeading]}>
+        DAILY TARGETS
+      </Text>
+      <View style={[styles.comingSoon, { backgroundColor: tokens.bg.surface }, cardShadow]}>
+        <Text style={[Type.textSm, { color: tokens.text.secondary }]}>Coming soon</Text>
       </View>
     </ScrollView>
   );
@@ -170,54 +187,41 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingHorizontal: SPACING.md, gap: SPACING.sm },
-  heading: { fontSize: FONT_SIZE.xxl, fontWeight: '700', marginBottom: SPACING.sm },
+  heading: { marginBottom: SPACING.sm },
   sectionHeading: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
     marginTop: SPACING.md,
     marginBottom: SPACING.sm,
   },
   statusCard: {
     borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    padding: SPACING.lg,
+    padding: SPACING.cardPad,
     gap: SPACING.xs,
   },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  statusLabel: { fontSize: FONT_SIZE.sm, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8 },
   badge: { borderRadius: BORDER_RADIUS.full, paddingHorizontal: SPACING.sm, paddingVertical: 2 },
-  badgeText: { fontSize: FONT_SIZE.xs, fontWeight: '700' },
-  tierName: { fontSize: FONT_SIZE.lg, fontWeight: '600' },
-  syncTime: { fontSize: FONT_SIZE.sm },
-  optionList: { gap: SPACING.sm },
-  sectionTitle: { fontSize: FONT_SIZE.sm, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8 },
+  syncRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  optionList: { gap: 0 },
+  sectionTitle: { marginBottom: SPACING.xs },
   optionCard: {
-    borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1.5,
     padding: SPACING.md,
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 56,
+    borderBottomWidth: 1,
   },
   optionInfo: { flex: 1 },
-  optionTitle: { fontSize: FONT_SIZE.md, fontWeight: '600', marginBottom: 2 },
-  optionDesc: { fontSize: FONT_SIZE.sm, lineHeight: FONT_SIZE.sm * 1.4 },
   activeDot: { width: 10, height: 10, borderRadius: 5, marginLeft: SPACING.sm },
   disconnectBtn: {
     height: 48,
-    borderRadius: BORDER_RADIUS.lg,
+    borderRadius: BORDER_RADIUS.button,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: SPACING.sm,
   },
-  disconnectBtnText: { fontSize: FONT_SIZE.md, fontWeight: '600' },
   comingSoon: {
     borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
     padding: SPACING.lg,
     alignItems: 'center',
   },
-  comingSoonText: { fontSize: FONT_SIZE.sm },
 });
