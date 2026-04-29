@@ -1,6 +1,7 @@
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 
 interface HeightWeightInputsProps {
   units: 'metric' | 'imperial';
@@ -29,21 +30,19 @@ export function HeightWeightInputs({
   onHeightInchesChange,
   onWeightLbsChange,
 }: HeightWeightInputsProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
 
-  const inputStyle = [styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.card }];
-  const labelStyle = [styles.fieldLabel, { color: colors.placeholder }];
+  const inputStyle = [styles.input, { color: tokens.text.primary, backgroundColor: tokens.bg.surface }];
 
   return (
     <View>
-      <Text style={labelStyle}>Height</Text>
+      <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.fieldLabel]}>HEIGHT</Text>
       {units === 'metric' ? (
         <View style={styles.row}>
           <TextInput
-            style={[inputStyle, styles.flex]}
+            style={[...inputStyle, styles.flex]}
             placeholder="cm"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={tokens.text.tertiary}
             keyboardType="numeric"
             value={heightCm}
             onChangeText={onHeightCmChange}
@@ -53,9 +52,9 @@ export function HeightWeightInputs({
       ) : (
         <View style={styles.row}>
           <TextInput
-            style={[inputStyle, styles.flex]}
+            style={[...inputStyle, styles.flex]}
             placeholder="ft"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={tokens.text.tertiary}
             keyboardType="numeric"
             value={heightFeet}
             onChangeText={onHeightFeetChange}
@@ -63,9 +62,9 @@ export function HeightWeightInputs({
           />
           <View style={styles.gap} />
           <TextInput
-            style={[inputStyle, styles.flex]}
+            style={[...inputStyle, styles.flex]}
             placeholder="in"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={tokens.text.tertiary}
             keyboardType="numeric"
             value={heightInches}
             onChangeText={onHeightInchesChange}
@@ -74,12 +73,14 @@ export function HeightWeightInputs({
         </View>
       )}
 
-      <Text style={[labelStyle, styles.topSpacing]}>Weight</Text>
+      <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.fieldLabel, styles.topSpacing]}>
+        WEIGHT
+      </Text>
       <View style={styles.row}>
         <TextInput
-          style={[inputStyle, styles.flex]}
+          style={[...inputStyle, styles.flex]}
           placeholder={units === 'metric' ? 'kg' : 'lbs'}
-          placeholderTextColor={colors.placeholder}
+          placeholderTextColor={tokens.text.tertiary}
           keyboardType="numeric"
           value={units === 'metric' ? weightKg : weightLbs}
           onChangeText={units === 'metric' ? onWeightKgChange : onWeightLbsChange}
@@ -99,23 +100,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gap: {
-    width: 10,
+    width: SPACING.sm,
   },
   fieldLabel: {
-    fontSize: 13,
-    fontWeight: '500',
     marginBottom: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   topSpacing: {
-    marginTop: 16,
+    marginTop: SPACING.md,
   },
   input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
     fontSize: 16,
+    fontFamily: 'JetBrainsMono_400Regular',
   },
 });

@@ -5,8 +5,9 @@ import { OnboardingHeader } from '@/components/OnboardingHeader';
 import { SelectOption } from '@/components/SelectOption';
 import { HeightWeightInputs } from '@/components/HeightWeightInputs';
 import { useUserStore } from '@/store/userStore';
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { lbsToKg, ftInToCm } from '@/utils/unitConverter';
 import { UserProfile } from '@/types';
 
@@ -19,8 +20,7 @@ const SEX_OPTIONS: { value: Sex; label: string }[] = [
 ];
 
 export default function ProfileScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const updateDraft = useUserStore((s) => s.updateDraft);
 
   const [name, setName] = useState('');
@@ -64,30 +64,30 @@ export default function ProfileScreen() {
     router.push('/onboarding/activity');
   }
 
-  const inputStyle = [styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.card }];
+  const inputStyle = [styles.input, { color: tokens.text.primary, backgroundColor: tokens.bg.surface }];
 
   return (
     <ScrollView
-      style={[styles.screen, { backgroundColor: colors.background }]}
+      style={[styles.screen, { backgroundColor: tokens.bg.primary }]}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
       <OnboardingHeader step={1} totalSteps={4} title="Your Profile" showBack={false} />
 
       <View style={styles.form}>
-        <Text style={[styles.label, { color: colors.placeholder }]}>Name (optional)</Text>
+        <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.label]}>NAME (OPTIONAL)</Text>
         <TextInput
           style={inputStyle}
           placeholder="e.g. Alex"
-          placeholderTextColor={colors.placeholder}
+          placeholderTextColor={tokens.text.tertiary}
           value={name}
           onChangeText={setName}
           autoCapitalize="words"
           returnKeyType="next"
         />
 
-        <Text style={[styles.label, styles.topSpacing, { color: colors.placeholder }]}>
-          Biological sex
+        <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.label, styles.topSpacing]}>
+          BIOLOGICAL SEX
         </Text>
         {SEX_OPTIONS.map((opt) => (
           <SelectOption
@@ -98,32 +98,32 @@ export default function ProfileScreen() {
           />
         ))}
 
-        <Text style={[styles.label, styles.topSpacing, { color: colors.placeholder }]}>
-          Date of birth
+        <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.label, styles.topSpacing]}>
+          DATE OF BIRTH
         </Text>
         <View style={styles.dobRow}>
           <TextInput
-            style={[inputStyle, styles.dobDay]}
+            style={[...inputStyle, styles.dobDay]}
             placeholder="DD"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={tokens.text.tertiary}
             keyboardType="numeric"
             maxLength={2}
             value={dobDay}
             onChangeText={setDobDay}
           />
           <TextInput
-            style={[inputStyle, styles.dobMonth]}
+            style={[...inputStyle, styles.dobMonth]}
             placeholder="MM"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={tokens.text.tertiary}
             keyboardType="numeric"
             maxLength={2}
             value={dobMonth}
             onChangeText={setDobMonth}
           />
           <TextInput
-            style={[inputStyle, styles.dobYear]}
+            style={[...inputStyle, styles.dobYear]}
             placeholder="YYYY"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={tokens.text.tertiary}
             keyboardType="numeric"
             maxLength={4}
             value={dobYear}
@@ -131,7 +131,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <Text style={[styles.label, styles.topSpacing, { color: colors.placeholder }]}>Units</Text>
+        <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.label, styles.topSpacing]}>UNITS</Text>
         <View style={styles.unitsRow}>
           {(['metric', 'imperial'] as const).map((u) => (
             <Pressable
@@ -140,12 +140,12 @@ export default function ProfileScreen() {
               style={[
                 styles.unitChip,
                 {
-                  backgroundColor: units === u ? colors.tint : colors.card,
-                  borderColor: colors.border,
+                  backgroundColor: units === u ? tokens.accent.primary : tokens.bg.surface,
+                  borderColor: tokens.border.hairline,
                 },
               ]}
             >
-              <Text style={[styles.unitChipText, { color: units === u ? '#fff' : colors.text }]}>
+              <Text style={[Type.textMd, { color: units === u ? '#fff' : tokens.text.primary }]}>
                 {u === 'metric' ? 'Metric (kg/cm)' : 'Imperial (lbs/ft)'}
               </Text>
             </Pressable>
@@ -171,9 +171,9 @@ export default function ProfileScreen() {
         <Pressable
           onPress={handleNext}
           disabled={!isValid}
-          style={[styles.button, { backgroundColor: isValid ? colors.tint : colors.border }]}
+          style={[styles.button, { backgroundColor: isValid ? tokens.accent.primary : tokens.bg.surfaceMuted }]}
         >
-          <Text style={styles.buttonText}>Next</Text>
+          <Text style={[Type.textLg, { color: isValid ? '#fff' : tokens.text.tertiary }]}>Next</Text>
         </Pressable>
       </View>
     </ScrollView>
@@ -185,32 +185,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingBottom: 48,
+    paddingBottom: SPACING.xxl,
   },
   form: {
-    paddingHorizontal: 24,
+    paddingHorizontal: SPACING.lg,
   },
   label: {
-    fontSize: 13,
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   topSpacing: {
-    marginTop: 20,
+    marginTop: SPACING.lg,
   },
   input: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: BORDER_RADIUS.lg,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
     fontSize: 16,
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
   dobRow: {
     flexDirection: 'row',
-    gap: 8,
+    gap: SPACING.sm,
   },
   dobDay: {
     flex: 1,
@@ -223,28 +218,18 @@ const styles = StyleSheet.create({
   },
   unitsRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: SPACING.sm,
   },
   unitChip: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.button,
     alignItems: 'center',
-  },
-  unitChipText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   button: {
-    marginTop: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
+    marginTop: SPACING.xl,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.button,
     alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

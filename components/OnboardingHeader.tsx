@@ -1,7 +1,8 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { SPACING } from '@/constants/Spacing';
 
 interface OnboardingHeaderProps {
   step: number;
@@ -11,8 +12,7 @@ interface OnboardingHeaderProps {
 }
 
 export function OnboardingHeader({ step, totalSteps, title, showBack = true }: OnboardingHeaderProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
 
   const dots = Array.from({ length: totalSteps });
 
@@ -21,7 +21,7 @@ export function OnboardingHeader({ step, totalSteps, title, showBack = true }: O
       <View style={styles.topRow}>
         {showBack ? (
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.backButton}>
-            <Text style={[styles.backText, { color: colors.tint }]}>← Back</Text>
+            <Text style={[Type.textMd, { color: tokens.accent.primary }]}>← Back</Text>
           </Pressable>
         ) : (
           <View style={styles.backButton} />
@@ -32,36 +32,32 @@ export function OnboardingHeader({ step, totalSteps, title, showBack = true }: O
               key={i}
               style={[
                 styles.dot,
-                { backgroundColor: i < step ? colors.tint : colors.border },
+                { backgroundColor: i < step ? tokens.accent.primary : tokens.border.hairline },
               ]}
             />
           ))}
         </View>
         <View style={styles.backButton} />
       </View>
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      <Text style={[Type.displayTitle, { color: tokens.text.primary }, styles.title]}>{title}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 16,
-    paddingHorizontal: 24,
-    paddingBottom: 8,
+    paddingTop: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.sm,
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: SPACING.lg,
   },
   backButton: {
     width: 60,
-  },
-  backText: {
-    fontSize: 15,
-    fontWeight: '500',
   },
   dots: {
     flexDirection: 'row',
@@ -73,8 +69,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   title: {
-    fontSize: 26,
-    fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
 });

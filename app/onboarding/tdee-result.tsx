@@ -3,8 +3,9 @@ import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { OnboardingHeader } from '@/components/OnboardingHeader';
 import { useUserStore } from '@/store/userStore';
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { calculateTargets } from '@/utils/tdeeCalculator';
 import { UserProfile } from '@/types';
 
@@ -14,15 +15,16 @@ interface MacroRowProps {
   calories: number;
   color: string;
   textColor: string;
+  secondaryColor: string;
 }
 
-function MacroRow({ label, grams, calories, color, textColor }: MacroRowProps) {
+function MacroRow({ label, grams, calories, color, textColor, secondaryColor }: MacroRowProps) {
   return (
     <View style={macroStyles.row}>
       <View style={[macroStyles.dot, { backgroundColor: color }]} />
-      <Text style={[macroStyles.label, { color: textColor }]}>{label}</Text>
-      <Text style={[macroStyles.value, { color: textColor }]}>{grams}g</Text>
-      <Text style={[macroStyles.kcal, { color: textColor }]}>{calories} kcal</Text>
+      <Text style={[Type.textMd, { color: textColor }, macroStyles.label]}>{label}</Text>
+      <Text style={[Type.monoMd, { color: textColor }, macroStyles.value]}>{grams}g</Text>
+      <Text style={[Type.monoSm, { color: secondaryColor }, macroStyles.kcal]}>{calories} kcal</Text>
     </View>
   );
 }
@@ -31,35 +33,29 @@ const macroStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: SPACING.sm,
   },
   dot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    marginRight: 10,
+    marginRight: SPACING.sm,
   },
   label: {
     flex: 1,
-    fontSize: 15,
   },
   value: {
-    fontSize: 15,
-    fontWeight: '600',
     width: 52,
     textAlign: 'right',
   },
   kcal: {
-    fontSize: 13,
     width: 64,
     textAlign: 'right',
-    opacity: 0.6,
   },
 });
 
 export default function TdeeResultScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const { draft, updateDraft } = useUserStore();
 
   const targets = useMemo(() => {
@@ -85,14 +81,14 @@ export default function TdeeResultScreen() {
 
   if (!targets) {
     return (
-      <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      <View style={[styles.screen, { backgroundColor: tokens.bg.primary }]}>
         <OnboardingHeader step={3} totalSteps={4} title="Your Target" />
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: colors.danger }]}>
+          <Text style={[Type.textMd, { color: tokens.status.danger }, styles.errorText]}>
             Profile data is missing. Please go back and complete all fields.
           </Text>
-          <Pressable onPress={() => router.back()} style={[styles.button, { backgroundColor: colors.tint }]}>
-            <Text style={styles.buttonText}>Go Back</Text>
+          <Pressable onPress={() => router.back()} style={[styles.button, { backgroundColor: tokens.accent.primary }]}>
+            <Text style={[Type.textLg, styles.buttonText]}>Go Back</Text>
           </Pressable>
         </View>
       </View>
@@ -103,51 +99,68 @@ export default function TdeeResultScreen() {
 
   return (
     <ScrollView
-      style={[styles.screen, { backgroundColor: colors.background }]}
+      style={[styles.screen, { backgroundColor: tokens.bg.primary }]}
       contentContainerStyle={styles.content}
     >
       <OnboardingHeader step={3} totalSteps={4} title="Your Target" />
 
       <View style={styles.body}>
-        <View style={[styles.calorieCard, { backgroundColor: colors.tint }]}>
-          <Text style={styles.calorieLabel}>Daily calorie target</Text>
-          <Text style={styles.calorieNumber}>{dailyCalorieTarget}</Text>
-          <Text style={styles.calorieUnit}>kcal / day</Text>
+        <View style={[styles.calorieCard, { backgroundColor: tokens.accent.primary }]}>
+          <Text style={[Type.textSm, styles.calorieLabel]}>Daily calorie target</Text>
+          <Text style={[Type.displayHero, styles.calorieNumber]}>{dailyCalorieTarget}</Text>
+          <Text style={[Type.textSm, styles.calorieUnit]}>kcal / day</Text>
         </View>
 
-        <View style={[styles.macroCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.macroTitle, { color: colors.text }]}>Macro breakdown</Text>
+        <View
+          style={[
+            styles.macroCard,
+            {
+              backgroundColor: tokens.bg.surface,
+              shadowColor: '#1A1A1A',
+              shadowOpacity: 0.04,
+              shadowRadius: 16,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 2,
+            },
+          ]}
+        >
+          <Text style={[Type.textXl, { color: tokens.text.primary }, styles.macroTitle]}>
+            Macro breakdown
+          </Text>
           <MacroRow
             label="Protein"
             grams={dailyProteinTarget}
             calories={dailyProteinTarget * 4}
-            color="#2D9CDB"
-            textColor={colors.text}
+            color={tokens.macro.protein}
+            textColor={tokens.text.primary}
+            secondaryColor={tokens.text.secondary}
           />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={[styles.divider, { backgroundColor: tokens.border.hairline }]} />
           <MacroRow
             label="Carbohydrates"
             grams={dailyCarbTarget}
             calories={dailyCarbTarget * 4}
-            color="#F2994A"
-            textColor={colors.text}
+            color={tokens.macro.carbs}
+            textColor={tokens.text.primary}
+            secondaryColor={tokens.text.secondary}
           />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={[styles.divider, { backgroundColor: tokens.border.hairline }]} />
           <MacroRow
             label="Fat"
             grams={dailyFatTarget}
             calories={dailyFatTarget * 9}
-            color="#27AE60"
-            textColor={colors.text}
+            color={tokens.macro.fat}
+            textColor={tokens.text.primary}
+            secondaryColor={tokens.text.secondary}
           />
         </View>
 
-        <Text style={[styles.footnote, { color: colors.placeholder }]}>
+        <Text style={[Type.textSm, { color: tokens.text.secondary }, styles.footnote]}>
           These targets are calculated using the Mifflin-St Jeor equation. The app will adapt them over time as it learns your metabolism.
         </Text>
 
-        <Pressable onPress={handleLooksGood} style={[styles.button, { backgroundColor: colors.tint }]}>
-          <Text style={styles.buttonText}>Looks good!</Text>
+        <Pressable onPress={handleLooksGood} style={[styles.button, { backgroundColor: tokens.accent.primary }]}>
+          <Text style={[Type.textLg, styles.buttonText]}>Looks good!</Text>
         </Pressable>
       </View>
     </ScrollView>
@@ -159,73 +172,59 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingBottom: 48,
+    paddingBottom: SPACING.xxl,
   },
   body: {
-    paddingHorizontal: 24,
+    paddingHorizontal: SPACING.lg,
   },
   calorieCard: {
-    borderRadius: 16,
-    padding: 28,
+    borderRadius: BORDER_RADIUS.xl,
+    padding: SPACING.xl,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.md,
   },
   calorieLabel: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 6,
+    color: 'rgba(255,255,255,0.85)',
+    marginBottom: SPACING.xs,
   },
   calorieNumber: {
-    color: '#fff',
-    fontSize: 56,
-    fontWeight: '800',
-    lineHeight: 60,
+    color: '#FFFFFF',
   },
   calorieUnit: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 14,
-    marginTop: 4,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: SPACING.xs,
   },
   macroCard: {
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    marginBottom: 20,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.cardPad,
+    marginBottom: SPACING.lg,
   },
   macroTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   divider: {
     height: 1,
   },
   footnote: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 24,
+    marginBottom: SPACING.lg,
     textAlign: 'center',
   },
   errorContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: SPACING.lg,
   },
   errorText: {
-    fontSize: 15,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: SPACING.lg,
   },
   button: {
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.button,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

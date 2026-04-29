@@ -1,6 +1,7 @@
 import { Pressable, Text, StyleSheet, View } from 'react-native';
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 
 interface SelectOptionProps {
   label: string;
@@ -10,8 +11,7 @@ interface SelectOptionProps {
 }
 
 export function SelectOption({ label, description, selected, onPress }: SelectOptionProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
 
   return (
     <Pressable
@@ -19,19 +19,19 @@ export function SelectOption({ label, description, selected, onPress }: SelectOp
       style={[
         styles.option,
         {
-          borderColor: selected ? colors.tint : colors.border,
-          backgroundColor: selected ? colors.tint + '18' : colors.card,
+          borderColor: selected ? tokens.accent.primary : 'transparent',
+          backgroundColor: selected ? tokens.accent.muted : tokens.bg.surface,
         },
       ]}
     >
       <View style={styles.content}>
-        <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+        <Text style={[Type.textLg, { color: tokens.text.primary }]}>{label}</Text>
         {description !== undefined && (
-          <Text style={[styles.description, { color: colors.placeholder }]}>{description}</Text>
+          <Text style={[Type.textSm, { color: tokens.text.secondary }, styles.description]}>{description}</Text>
         )}
       </View>
-      <View style={[styles.radio, { borderColor: selected ? colors.tint : colors.border }]}>
-        {selected && <View style={[styles.radioInner, { backgroundColor: colors.tint }]} />}
+      <View style={[styles.radio, { borderColor: selected ? tokens.accent.primary : tokens.border.hairline }]}>
+        {selected && <View style={[styles.radioInner, { backgroundColor: tokens.accent.primary }]} />}
       </View>
     </Pressable>
   );
@@ -41,20 +41,15 @@ const styles = StyleSheet.create({
   option: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
     borderWidth: 1.5,
-    marginBottom: 10,
+    marginBottom: SPACING.sm,
   },
   content: {
     flex: 1,
   },
-  label: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
   description: {
-    fontSize: 13,
     marginTop: 2,
   },
   radio: {
@@ -64,7 +59,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 12,
+    marginLeft: SPACING.sm,
   },
   radioInner: {
     width: 10,

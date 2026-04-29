@@ -2,39 +2,50 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { OnboardingHeader } from '@/components/OnboardingHeader';
 import { useUserStore } from '@/store/userStore';
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
+import type { TokenSet } from '@/constants/Tokens';
 
 interface ConnectionCardProps {
   title: string;
   description: string;
   badge?: string;
   onPress: () => void;
-  colors: typeof Colors.light;
+  tokens: TokenSet;
 }
 
-function ConnectionCard({ title, description, badge, onPress, colors }: ConnectionCardProps) {
+function ConnectionCard({ title, description, badge, onPress, tokens }: ConnectionCardProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+      style={[
+        styles.card,
+        {
+          backgroundColor: tokens.bg.surface,
+          shadowColor: '#1A1A1A',
+          shadowOpacity: 0.04,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 2,
+        },
+      ]}
     >
       <View style={styles.cardContent}>
         {badge !== undefined && (
-          <View style={[styles.badge, { backgroundColor: colors.tint + '22' }]}>
-            <Text style={[styles.badgeText, { color: colors.tint }]}>{badge}</Text>
+          <View style={[styles.badge, { backgroundColor: tokens.accent.muted }]}>
+            <Text style={[Type.textXs, { color: tokens.accent.primary }]}>{badge}</Text>
           </View>
         )}
-        <Text style={[styles.cardTitle, { color: colors.text }]}>{title}</Text>
-        <Text style={[styles.cardDesc, { color: colors.placeholder }]}>{description}</Text>
+        <Text style={[Type.textLg, { color: tokens.text.primary }, styles.cardTitle]}>{title}</Text>
+        <Text style={[Type.textSm, { color: tokens.text.secondary }]}>{description}</Text>
       </View>
     </Pressable>
   );
 }
 
 export default function AmazfitScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const finishOnboarding = useUserStore((s) => s.finishOnboarding);
 
   function handleSkip() {
@@ -42,8 +53,6 @@ export default function AmazfitScreen() {
     router.replace('/(tabs)');
   }
 
-  // Zepp OAuth and Health Connect require development build (step 9).
-  // For now all options complete onboarding without native integration.
   function handleZepp() {
     finishOnboarding();
     router.replace('/(tabs)');
@@ -55,11 +64,11 @@ export default function AmazfitScreen() {
   }
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.background }]}>
+    <View style={[styles.screen, { backgroundColor: tokens.bg.primary }]}>
       <OnboardingHeader step={4} totalSteps={4} title="Connect Your Watch" />
 
       <View style={styles.body}>
-        <Text style={[styles.subtitle, { color: colors.placeholder }]}>
+        <Text style={[Type.textMd, { color: tokens.text.secondary }, styles.subtitle]}>
           Sync burned calories from your Amazfit watch for a live net calorie balance.
         </Text>
 
@@ -68,21 +77,21 @@ export default function AmazfitScreen() {
           description="Sign in with your Zepp / Huami account for automatic daily sync."
           badge="Recommended"
           onPress={handleZepp}
-          colors={colors}
+          tokens={tokens}
         />
 
         <ConnectionCard
           title="Use Health Connect / Apple Health"
           description="Read calories burned via your phone's health platform."
           onPress={handleHealthConnect}
-          colors={colors}
+          tokens={tokens}
         />
 
         <ConnectionCard
           title="Skip for now"
           description="You can connect your watch later in Settings."
           onPress={handleSkip}
-          colors={colors}
+          tokens={tokens}
         />
       </View>
     </View>
@@ -94,41 +103,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   body: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.sm,
   },
   subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginBottom: 24,
+    marginBottom: SPACING.lg,
   },
   card: {
-    borderRadius: 16,
-    borderWidth: 1.5,
-    marginBottom: 14,
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.sm,
     overflow: 'hidden',
   },
   cardContent: {
-    padding: 20,
+    padding: SPACING.cardPad,
   },
   badge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 8,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '600',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 2,
+    borderRadius: BORDER_RADIUS.full,
+    marginBottom: SPACING.xs,
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  cardDesc: {
-    fontSize: 14,
-    lineHeight: 20,
+    marginBottom: SPACING.xs,
   },
 });

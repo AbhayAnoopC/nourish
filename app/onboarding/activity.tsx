@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { OnboardingHeader } from '@/components/OnboardingHeader';
 import { SelectOption } from '@/components/SelectOption';
 import { useUserStore } from '@/store/userStore';
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { ActivityLevel, Goal } from '@/types';
 
 interface ActivityOption {
@@ -35,8 +36,7 @@ const GOAL_OPTIONS: GoalOption[] = [
 ];
 
 export default function ActivityScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const updateDraft = useUserStore((s) => s.updateDraft);
 
   const [activityLevel, setActivityLevel] = useState<ActivityLevel | null>(null);
@@ -52,13 +52,13 @@ export default function ActivityScreen() {
 
   return (
     <ScrollView
-      style={[styles.screen, { backgroundColor: colors.background }]}
+      style={[styles.screen, { backgroundColor: tokens.bg.primary }]}
       contentContainerStyle={styles.content}
     >
       <OnboardingHeader step={2} totalSteps={4} title="Activity & Goal" />
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Activity Level</Text>
+        <Text style={[Type.textXl, { color: tokens.text.primary }, styles.sectionTitle]}>Activity Level</Text>
         {ACTIVITY_OPTIONS.map((opt) => (
           <SelectOption
             key={opt.value}
@@ -71,7 +71,7 @@ export default function ActivityScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Goal</Text>
+        <Text style={[Type.textXl, { color: tokens.text.primary }, styles.sectionTitle]}>Your Goal</Text>
         {GOAL_OPTIONS.map((opt) => (
           <SelectOption
             key={opt.value}
@@ -87,9 +87,11 @@ export default function ActivityScreen() {
         <Pressable
           onPress={handleCalculate}
           disabled={!isValid}
-          style={[styles.button, { backgroundColor: isValid ? colors.tint : colors.border }]}
+          style={[styles.button, { backgroundColor: isValid ? tokens.accent.primary : tokens.bg.surfaceMuted }]}
         >
-          <Text style={styles.buttonText}>Calculate my target</Text>
+          <Text style={[Type.textLg, { color: isValid ? '#FFFFFF' : tokens.text.tertiary }]}>
+            Calculate my target
+          </Text>
         </Pressable>
       </View>
     </ScrollView>
@@ -101,30 +103,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingBottom: 48,
+    paddingBottom: SPACING.xxl,
   },
   section: {
-    paddingHorizontal: 24,
-    marginBottom: 8,
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.sm,
   },
   sectionTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    marginBottom: 12,
-    marginTop: 8,
+    marginBottom: SPACING.md,
+    marginTop: SPACING.sm,
   },
   buttonRow: {
-    paddingHorizontal: 24,
-    marginTop: 16,
+    paddingHorizontal: SPACING.lg,
+    marginTop: SPACING.md,
   },
   button: {
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: SPACING.md,
+    borderRadius: BORDER_RADIUS.button,
     alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
