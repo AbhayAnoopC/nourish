@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useTokens } from '@/hooks/useTokens';
+import { useReduceMotion } from '@/hooks/useReduceMotion';
 import { PressScale } from '@/constants/Motion';
 
 interface HeroFabProps {
@@ -15,16 +16,25 @@ interface HeroFabProps {
 
 export function HeroFab({ onPress }: HeroFabProps) {
   const tokens = useTokens();
+  const reduceMotion = useReduceMotion();
   const scale = useSharedValue(1);
 
   const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   const handlePressIn = () => {
-    scale.value = withTiming(PressScale.scaleTo, { duration: PressScale.pressDuration });
+    if (reduceMotion) {
+      scale.value = PressScale.scaleTo;
+    } else {
+      scale.value = withTiming(PressScale.scaleTo, { duration: PressScale.pressDuration });
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
   const handlePressOut = () => {
-    scale.value = withTiming(1, { duration: PressScale.releaseDuration });
+    if (reduceMotion) {
+      scale.value = 1;
+    } else {
+      scale.value = withTiming(1, { duration: PressScale.releaseDuration });
+    }
   };
 
   return (

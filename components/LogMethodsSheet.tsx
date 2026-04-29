@@ -17,6 +17,7 @@ import Animated, {
 import { router } from 'expo-router';
 import { Search, ScanBarcode, Camera, ScanText, ChevronRight } from 'lucide-react-native';
 import { useTokens } from '@/hooks/useTokens';
+import { useReduceMotion } from '@/hooks/useReduceMotion';
 import { Type } from '@/constants/Typography';
 import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { Duration } from '@/constants/Motion';
@@ -68,30 +69,46 @@ interface LogMethodsSheetProps {
 
 export function LogMethodsSheet({ visible, onDismiss }: LogMethodsSheetProps) {
   const tokens = useTokens();
+  const reduceMotion = useReduceMotion();
   const insets = useSafeAreaInsets();
   const translateY = useSharedValue(800);
   const backdrop = useSharedValue(0);
 
   useEffect(() => {
     if (visible) {
-      translateY.value = withTiming(0, {
-        duration: Duration.medium,
-        easing: Easing.out(Easing.ease),
-      });
-      backdrop.value = withTiming(0.4, { duration: 200 });
+      if (reduceMotion) {
+        translateY.value = 0;
+        backdrop.value = 0.4;
+      } else {
+        translateY.value = withTiming(0, {
+          duration: Duration.medium,
+          easing: Easing.out(Easing.ease),
+        });
+        backdrop.value = withTiming(0.4, { duration: 200 });
+      }
     } else {
       translateY.value = 800;
       backdrop.value = 0;
     }
-  }, [visible, translateY, backdrop]);
+  }, [visible, translateY, backdrop, reduceMotion]);
 
   const handleDismiss = () => {
-    translateY.value = withTiming(800, {
-      duration: 250,
-      easing: Easing.in(Easing.ease),
-    }, (finished) => {
-      if (finished) runOnJS(onDismiss)();
-    });
+    if (reduceMotion) {
+      translateY.value = 800;
+      backdrop.value = 0;
+      onDismiss();
+      return;
+    }
+    translateY.value = withTiming(
+      800,
+      {
+        duration: 250,
+        easing: Easing.in(Easing.ease),
+      },
+      (finished) => {
+        if (finished) runOnJS(onDismiss)();
+      },
+    );
     backdrop.value = withTiming(0, { duration: 200 });
   };
 
