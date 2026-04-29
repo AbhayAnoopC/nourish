@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
-import { SPACING, FONT_SIZE, BORDER_RADIUS } from '@/constants/Spacing';
+import { useTokens } from '@/hooks/useTokens';
+import { Type } from '@/constants/Typography';
+import { SPACING, BORDER_RADIUS } from '@/constants/Spacing';
 
 interface MacroBarProps {
   proteinG: number;
@@ -20,43 +20,54 @@ interface MacroCellProps {
 function MacroCell({ label, value, unit, valueColor, labelColor }: MacroCellProps) {
   return (
     <View style={styles.cell}>
-      <Text style={[styles.value, { color: valueColor }]}>
+      <Text style={[Type.monoLg, { color: valueColor }]}>
         {value}
-        <Text style={[styles.unit, { color: labelColor }]}>{unit}</Text>
+        <Text style={[Type.monoSm, { color: labelColor }]}>{unit}</Text>
       </Text>
-      <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
+      <Text style={[Type.textSm, { color: labelColor }, styles.label]}>{label}</Text>
     </View>
   );
 }
 
 export function MacroBar({ proteinG, carbsG, fatG }: MacroBarProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: tokens.bg.surface,
+          shadowColor: '#1A1A1A',
+          shadowOpacity: 0.04,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 2,
+        },
+      ]}
+    >
       <MacroCell
         label="Protein"
         value={proteinG}
         unit="g"
-        valueColor={colors.success}
-        labelColor={colors.placeholder}
+        valueColor={tokens.macro.protein}
+        labelColor={tokens.text.secondary}
       />
-      <View style={[styles.divider, { backgroundColor: colors.border }]} />
+      <View style={[styles.divider, { backgroundColor: tokens.border.hairline }]} />
       <MacroCell
         label="Carbs"
         value={carbsG}
         unit="g"
-        valueColor={colors.tint}
-        labelColor={colors.placeholder}
+        valueColor={tokens.macro.carbs}
+        labelColor={tokens.text.secondary}
       />
-      <View style={[styles.divider, { backgroundColor: colors.border }]} />
+      <View style={[styles.divider, { backgroundColor: tokens.border.hairline }]} />
       <MacroCell
         label="Fat"
         value={fatG}
         unit="g"
-        valueColor={colors.warning}
-        labelColor={colors.placeholder}
+        valueColor={tokens.macro.fat}
+        labelColor={tokens.text.secondary}
       />
     </View>
   );
@@ -66,23 +77,13 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     borderRadius: BORDER_RADIUS.lg,
-    borderWidth: 1,
-    padding: SPACING.md,
+    padding: SPACING.cardPad,
   },
   cell: {
     flex: 1,
     alignItems: 'center',
   },
-  value: {
-    fontSize: FONT_SIZE.xl,
-    fontWeight: '700',
-  },
-  unit: {
-    fontSize: FONT_SIZE.sm,
-    fontWeight: '400',
-  },
   label: {
-    fontSize: FONT_SIZE.sm,
     marginTop: 2,
   },
   divider: {
