@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import { USDA_API_BASE } from '@/constants/Api';
-import { SearchResult } from '@/types';
+import type { FoodPortion, SearchResult } from '@/types';
 
 // Standard USDA FoodData Central nutrient IDs
 const NUTRIENT_ENERGY_KCAL = 1008;
@@ -13,12 +13,19 @@ interface FdcNutrient {
   value: number;
 }
 
+interface FdcFoodPortion {
+  amount?: number;
+  modifier?: string;
+  gramWeight?: number;
+}
+
 interface FdcFood {
   fdcId: number;
   description: string;
   brandOwner?: string;
   brandName?: string;
   foodNutrients: FdcNutrient[];
+  foodPortions?: FdcFoodPortion[];
 }
 
 interface FdcSearchResponse {
@@ -27,6 +34,26 @@ interface FdcSearchResponse {
 
 function getNutrientValue(nutrients: FdcNutrient[], id: number): number {
   return nutrients.find((n) => n.nutrientId === id)?.value ?? 0;
+}
+
+function formatPortionAmount(amount: number): string {
+  return Number(amount).toString();
+}
+
+function parseFoodPortions(portions?: FdcFoodPortion[]): FoodPortion[] | undefined {
+  if (!portions || portions.length === 0) return undefined;
+  const parsed: FoodPortion[] = [];
+  for (const p of portions) {
+    if (!p.modifier || typeof p.gramWeight !== 'number' || p.gramWeight <= 0) continue;
+    if (typeof p.amount !== 'number' || p.amount <= 0) continue;
+    parsed.push({
+      label: `${formatPortionAmount(p.amount)} ${p.modifier.trim()}`,
+      gramWeight: p.gramWeight,
+    });
+  }
+  if (parsed.length === 0) return undefined;
+  parsed.sort((a, b) => a.gramWeight - b.gramWeight);
+  return parsed;
 }
 
 function mapFdcFoodToSearchResult(food: FdcFood): SearchResult {
@@ -40,6 +67,7 @@ function mapFdcFoodToSearchResult(food: FdcFood): SearchResult {
     carbsG: Math.round(getNutrientValue(food.foodNutrients, NUTRIENT_CARBS) * 10) / 10,
     fatG: Math.round(getNutrientValue(food.foodNutrients, NUTRIENT_FAT) * 10) / 10,
     source: 'usda',
+    foodPortions: parseFoodPortions(food.foodPortions),
   };
 }
 

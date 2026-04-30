@@ -82,6 +82,42 @@ describe('searchFoods', () => {
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
     await expect(searchFoods('chicken')).rejects.toThrow('Network error');
   });
+
+  it('parses foodPortions when present in the response', async () => {
+    const mockResponse = {
+      foods: [
+        {
+          fdcId: 12345,
+          description: 'Chicken breast, raw',
+          foodNutrients: [
+            { nutrientId: 1008, value: 165 },
+            { nutrientId: 1003, value: 31 },
+            { nutrientId: 1004, value: 3.6 },
+            { nutrientId: 1005, value: 0 },
+          ],
+          foodPortions: [
+            { amount: 1, modifier: 'breast, half', gramWeight: 172 },
+            { amount: 0.5, modifier: 'breast, half', gramWeight: 86 },
+            { amount: 1, modifier: 'piece', gramWeight: 0 }, // filtered out (gramWeight 0)
+          ],
+        },
+      ],
+    };
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    const results = await searchFoods('chicken');
+
+    expect(results).toHaveLength(1);
+    expect(results[0].foodPortions).toBeDefined();
+    expect(results[0].foodPortions).toEqual([
+      { label: '0.5 breast, half', gramWeight: 86 },
+      { label: '1 breast, half', gramWeight: 172 },
+    ]);
+  });
 });
 
 describe('lookupByBarcode', () => {
