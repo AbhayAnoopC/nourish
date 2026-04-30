@@ -14,8 +14,9 @@ import { Stack, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTokens } from '@/hooks/useTokens';
 import { MacroBar } from '@/components/MacroBar';
+import { QuantityInput } from '@/components/QuantityInput';
 import { Type } from '@/constants/Typography';
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
+import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { useLogFlowStore } from '@/store/logFlowStore';
 import { useDailyLogStore } from '@/store/dailyLogStore';
 import { useSavedMealsStore } from '@/store/savedMealsStore';
@@ -34,24 +35,21 @@ export default function ConfirmFoodScreen() {
   const addFoodItem = useDailyLogStore((s) => s.addFoodItem);
   const addSavedMeal = useSavedMealsStore((s) => s.addMeal);
 
-  const [quantityText, setQuantityText] = useState('1');
+  const [activeGrams, setActiveGrams] = useState(0);
+  const [activeLabel, setActiveLabel] = useState('');
   const [saveModalVisible, setSaveModalVisible] = useState(false);
   const [mealNameText, setMealNameText] = useState('');
 
-  const quantity = useMemo(() => {
-    const parsed = parseFloat(quantityText);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-  }, [quantityText]);
-
   const scaled = useMemo(() => {
-    if (!pendingItem || quantity === 0) return null;
+    if (!pendingItem || activeGrams === 0) return null;
+    const factor = activeGrams / 100;
     return {
-      calories: Math.round(pendingItem.calories * quantity),
-      proteinG: Math.round(pendingItem.proteinG * quantity * 10) / 10,
-      carbsG: Math.round(pendingItem.carbsG * quantity * 10) / 10,
-      fatG: Math.round(pendingItem.fatG * quantity * 10) / 10,
+      calories: Math.round(pendingItem.calories * factor),
+      proteinG: Math.round(pendingItem.proteinG * factor * 10) / 10,
+      carbsG: Math.round(pendingItem.carbsG * factor * 10) / 10,
+      fatG: Math.round(pendingItem.fatG * factor * 10) / 10,
     };
-  }, [pendingItem, quantity]);
+  }, [pendingItem, activeGrams]);
 
   const handleAddToLog = useCallback(() => {
     if (!pendingItem || !scaled) return;
@@ -62,7 +60,7 @@ export default function ConfirmFoodScreen() {
       timestamp: new Date().toISOString(),
       foodName: pendingItem.foodName,
       brandName: pendingItem.brandName,
-      servingLabel: quantity !== 1 ? `${quantity} × ${pendingItem.servingSize}` : pendingItem.servingSize,
+      servingLabel: activeLabel,
       calories: scaled.calories,
       proteinG: scaled.proteinG,
       carbsG: scaled.carbsG,
@@ -73,7 +71,7 @@ export default function ConfirmFoodScreen() {
     addFoodItem(item);
     clearPendingItem();
     router.navigate('/(tabs)');
-  }, [pendingItem, scaled, quantity, addFoodItem, clearPendingItem]);
+  }, [pendingItem, scaled, activeLabel, addFoodItem, clearPendingItem]);
 
   const handleSaveAsMeal = useCallback(() => {
     if (!pendingItem || !scaled) return;
@@ -93,7 +91,7 @@ export default function ConfirmFoodScreen() {
         {
           foodName: pendingItem.foodName,
           brandName: pendingItem.brandName,
-          servingLabel: quantity !== 1 ? `${quantity} × ${pendingItem.servingSize}` : pendingItem.servingSize,
+          servingLabel: activeLabel,
           calories: scaled.calories,
           proteinG: scaled.proteinG,
           carbsG: scaled.carbsG,
@@ -107,7 +105,7 @@ export default function ConfirmFoodScreen() {
       totalFatG: scaled.fatG,
     });
     setSaveModalVisible(false);
-  }, [pendingItem, scaled, quantity, mealNameText, addSavedMeal]);
+  }, [pendingItem, scaled, activeLabel, mealNameText, addSavedMeal]);
 
   if (!pendingItem) {
     return (
@@ -120,7 +118,7 @@ export default function ConfirmFoodScreen() {
     );
   }
 
-  const canAdd = quantity > 0 && scaled !== null;
+  const canAdd = activeGrams > 0 && activeLabel.length > 0 && scaled !== null;
 
   return (
     <KeyboardAvoidingView
@@ -155,25 +153,26 @@ export default function ConfirmFoodScreen() {
         </View>
 
         {/* Quantity input */}
-        <View style={[styles.card, { backgroundColor: tokens.bg.surface }]}>
-          <Text style={[styles.sectionLabel, Type.textXs, { color: tokens.text.secondary }]}>Quantity</Text>
-          <View style={styles.quantityRow}>
-            <TextInput
-              style={[
-                styles.quantityInput,
-                Type.textXl,
-                { color: tokens.text.primary, backgroundColor: tokens.bg.primary },
-              ]}
-              value={quantityText}
-              onChangeText={setQuantityText}
-              keyboardType="decimal-pad"
-              selectTextOnFocus
-              maxLength={6}
-            />
-            <Text style={[styles.servingUnit, Type.textLg, { color: tokens.text.primary }]}>
-              × {pendingItem.servingSize}
-            </Text>
-          </View>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: tokens.bg.surface,
+              shadowColor: '#1A1A1A',
+              shadowOpacity: 0.04,
+              shadowRadius: 16,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 2,
+            },
+          ]}
+        >
+          <QuantityInput
+            food={pendingItem}
+            onChange={(grams, label) => {
+              setActiveGrams(grams);
+              setActiveLabel(label);
+            }}
+          />
         </View>
 
         {/* Calorie total */}
@@ -288,20 +287,6 @@ const styles = StyleSheet.create({
   sectionLabel: {
     textTransform: 'uppercase',
     marginBottom: SPACING.sm,
-  },
-  quantityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-  },
-  quantityInput: {
-    width: 80,
-    height: 48,
-    borderRadius: BORDER_RADIUS.md,
-    paddingHorizontal: SPACING.md,
-    textAlign: 'center',
-  },
-  servingUnit: {
   },
   calorieValue: {
   },
