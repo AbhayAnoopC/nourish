@@ -16,6 +16,18 @@ interface OFFProduct {
   product_name?: string;
   brands?: string;
   nutriments: OFFNutriments;
+  serving_size?: string;
+  serving_quantity?: number;
+}
+
+function extractServingGrams(product: OFFProduct): number | undefined {
+  if (typeof product.serving_quantity !== 'number') return undefined;
+  if (!product.serving_size) return undefined;
+  // Only accept gram-denominated servings — treat ml/oz/etc. as "no gram data"
+  if (/\bg\b/i.test(product.serving_size) && !/\bml\b/i.test(product.serving_size)) {
+    return product.serving_quantity;
+  }
+  return undefined;
 }
 
 interface OFFSearchResponse {
@@ -46,6 +58,7 @@ function mapOFFProductToSearchResult(product: OFFProduct): SearchResult | null {
     carbsG: Math.round((product.nutriments.carbohydrates_100g ?? 0) * 10) / 10,
     fatG: Math.round((product.nutriments.fat_100g ?? 0) * 10) / 10,
     source: 'openfoodfacts',
+    servingGrams: extractServingGrams(product),
   };
 }
 

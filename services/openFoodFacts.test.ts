@@ -97,6 +97,59 @@ describe('searchFoodsByName', () => {
     mockFetch.mockRejectedValueOnce(new Error('timeout'));
     await expect(searchFoodsByName('oat')).rejects.toThrow('timeout');
   });
+
+  it('extracts servingGrams when serving_size is in grams', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        products: [
+          {
+            _id: 'abc',
+            product_name: 'Test bar',
+            brands: 'TestCo',
+            nutriments: {
+              'energy-kcal_100g': 400,
+              proteins_100g: 10,
+              fat_100g: 20,
+              carbohydrates_100g: 50,
+            },
+            serving_size: '30 g',
+            serving_quantity: 30,
+          },
+        ],
+      }),
+    });
+
+    const results = await searchFoodsByName('test');
+    expect(results).toHaveLength(1);
+    expect(results[0].servingGrams).toBe(30);
+  });
+
+  it('does not set servingGrams when serving_size is in ml', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        products: [
+          {
+            _id: 'def',
+            product_name: 'Test drink',
+            nutriments: {
+              'energy-kcal_100g': 50,
+              proteins_100g: 1,
+              fat_100g: 0,
+              carbohydrates_100g: 12,
+            },
+            serving_size: '250 ml',
+            serving_quantity: 250,
+          },
+        ],
+      }),
+    });
+
+    const results = await searchFoodsByName('test');
+    expect(results).toHaveLength(1);
+    expect(results[0].servingGrams).toBeUndefined();
+  });
 });
 
 describe('lookupByBarcode', () => {
