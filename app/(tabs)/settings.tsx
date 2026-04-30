@@ -13,6 +13,7 @@ import { useTokens } from '@/hooks/useTokens';
 import { Type } from '@/constants/Typography';
 import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { useAmazfit } from '@/hooks/useAmazfit';
+import { SavedServingsList } from '@/components/SavedServingsList';
 import type { AmazfitConnectionTier } from '@/types';
 
 const TIER_LABEL: Record<AmazfitConnectionTier, string> = {
@@ -180,6 +181,8 @@ export default function SettingsScreen() {
       <View style={[styles.comingSoon, { backgroundColor: tokens.bg.surface }, cardShadow]}>
         <Text style={[Type.textSm, { color: tokens.text.secondary }]}>Coming soon</Text>
       </View>
+
+      <SavedServingsList />
     </ScrollView>
   );
 }
