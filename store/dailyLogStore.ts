@@ -4,6 +4,30 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DailyLog, FoodLogItem } from '@/types';
 import { getTodayDateString } from '@/utils/dateUtils';
 
+export function migrateDailyLogs(persisted: unknown, _version: number): unknown {
+  if (persisted === null || persisted === undefined) return persisted;
+  if (typeof persisted !== 'object') return persisted;
+  const state = persisted as { logs?: Record<string, { foodItems?: unknown[] }> };
+  if (!state.logs || typeof state.logs !== 'object') return persisted;
+
+  for (const log of Object.values(state.logs)) {
+    if (!log.foodItems || !Array.isArray(log.foodItems)) continue;
+    for (const item of log.foodItems) {
+      if (item === null || typeof item !== 'object') continue;
+      const itemAny = item as Record<string, unknown>;
+      if ('servingLabel' in itemAny) continue;
+      if ('servingQuantity' in itemAny && 'servingSize' in itemAny) {
+        const qty = itemAny.servingQuantity as number;
+        const size = itemAny.servingSize as string;
+        itemAny.servingLabel = qty !== 1 ? `${qty} × ${size}` : size;
+        delete itemAny.servingQuantity;
+        delete itemAny.servingSize;
+      }
+    }
+  }
+  return persisted;
+}
+
 function createEmptyLog(date: string): DailyLog {
   return {
     date,
@@ -120,6 +144,8 @@ export const useDailyLogStore = create<DailyLogState>()(
     {
       name: 'nourish-daily-logs',
       storage: createJSONStorage(() => AsyncStorage),
+      version: 2,
+      migrate: migrateDailyLogs as never,
     },
   ),
 );
