@@ -37,6 +37,11 @@ export default function ConfirmFoodScreen() {
 
   const [activeGrams, setActiveGrams] = useState(0);
   const [activeLabel, setActiveLabel] = useState('');
+
+  const handleQuantityChange = useCallback((grams: number, label: string) => {
+    setActiveGrams(grams);
+    setActiveLabel(label);
+  }, []);
   const [saveModalVisible, setSaveModalVisible] = useState(false);
   const [mealNameText, setMealNameText] = useState('');
 
@@ -168,10 +173,7 @@ export default function ConfirmFoodScreen() {
         >
           <QuantityInput
             food={pendingItem}
-            onChange={(grams, label) => {
-              setActiveGrams(grams);
-              setActiveLabel(label);
-            }}
+            onChange={handleQuantityChange}
           />
         </View>
 

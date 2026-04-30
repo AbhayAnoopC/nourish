@@ -74,7 +74,7 @@ export async function lookupByBarcode(barcode: string): Promise<SearchResult | n
     const result = mapOFFProductToSearchResult(data.product);
     return result ? { ...result, source: 'barcode' } : null;
   } catch (error) {
-    console.error('[openFoodFacts] lookupByBarcode failed:', error);
+    console.warn('[openFoodFacts] lookupByBarcode failed:', error);
     throw error;
   }
 }
@@ -94,7 +94,7 @@ export async function searchFoodsByName(query: string): Promise<SearchResult[]> 
       .map(mapOFFProductToSearchResult)
       .filter((item): item is SearchResult => item !== null);
   } catch (error) {
-    console.error('[openFoodFacts] searchFoodsByName failed:', error);
+    console.warn('[openFoodFacts] searchFoodsByName failed:', error);
     throw error;
   }
 }
