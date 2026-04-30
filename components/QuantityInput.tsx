@@ -68,7 +68,7 @@ export function QuantityInput({ food, onChange }: QuantityInputProps) {
   );
   const [modalOpen, setModalOpen] = useState(false);
 
-  const gramsPerMl = useMemo(() => detectGramsPerMl(food), [food]);
+  const gramsPerMl = useMemo(() => detectGramsPerMl(food), [food.foodPortions]);
   const mlAvailable = gramsPerMl !== undefined;
 
   // Re-pick default when options change (e.g., a custom is added)

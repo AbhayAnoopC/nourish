@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { SearchResult, ServingOption } from '@/types';
 import { useUserStore } from '@/store/userStore';
 import { useCustomServingsStore } from '@/store/customServingsStore';
-import { isExactMatch } from '@/utils/normalizeFoodName';
+import { isExactMatch, isFuzzyMatch } from '@/utils/normalizeFoodName';
 
 const FALLBACK_GRAMS_100 = 100;
 const GRAMS_PER_OZ = 28.349523125;
@@ -10,7 +10,16 @@ const MAX_OPTIONS = 6;
 
 export function useServingOptions(food: SearchResult): ServingOption[] {
   const profileUnits = useUserStore((s) => s.profile?.units);
-  const customs = useCustomServingsStore((s) => s.findMatchesForFood(food.foodName));
+  // Select the raw array — stable reference when store hasn't changed.
+  // Never call a method here; method calls return new arrays every render,
+  // causing Zustand to see a changed value and loop indefinitely.
+  const allCustoms = useCustomServingsStore((s) => s.customs);
+
+  // Stable filtered list — only recomputed when the store or food name changes.
+  const customs = useMemo(
+    () => allCustoms.filter((c) => isFuzzyMatch(c.matchKey, food.foodName)),
+    [allCustoms, food.foodName],
+  );
 
   return useMemo(() => {
     const options: ServingOption[] = [];
@@ -52,5 +61,5 @@ export function useServingOptions(food: SearchResult): ServingOption[] {
     }
 
     return Array.from(seen.values()).slice(0, MAX_OPTIONS);
-  }, [food, customs, profileUnits]);
+  }, [food.foodName, food.foodPortions, food.source, food.servingGrams, customs, profileUnits]);
 }
