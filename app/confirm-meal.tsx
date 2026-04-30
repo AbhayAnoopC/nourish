@@ -53,14 +53,15 @@ export default function ConfirmMealScreen() {
     const baseTimestamp = Date.now();
 
     pendingMeal.items.forEach((item, index) => {
+      const itemAny = item as unknown as { servingLabel?: string; servingSize?: string; servingQuantity?: number };
+      const baseLabel = itemAny.servingLabel ?? `${itemAny.servingQuantity ?? 1} × ${itemAny.servingSize ?? '100g'}`;
       const logItem: FoodLogItem = {
         id: generateId(),
         date: today,
         timestamp: new Date(baseTimestamp + index).toISOString(),
         foodName: item.foodName,
         brandName: item.brandName,
-        servingSize: item.servingSize,
-        servingQuantity: item.servingQuantity * multiplier,
+        servingLabel: multiplier !== 1 ? `${multiplier} × ${baseLabel}` : baseLabel,
         calories: Math.round(item.calories * multiplier),
         proteinG: Math.round(item.proteinG * multiplier * 10) / 10,
         carbsG: Math.round(item.carbsG * multiplier * 10) / 10,

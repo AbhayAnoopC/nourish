@@ -53,7 +53,7 @@ export function FoodLogRow({ item, onDelete, isLast }: FoodLogRowProps) {
             {item.foodName}
           </Text>
           <Text style={[Type.textSm, { color: tokens.text.secondary }]} numberOfLines={1}>
-            {item.servingQuantity} × {item.servingSize} · {formatTime(item.timestamp)}
+            {item.servingLabel} · {formatTime(item.timestamp)}
           </Text>
         </View>
         <View style={styles.right}>
