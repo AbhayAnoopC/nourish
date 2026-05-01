@@ -93,8 +93,8 @@ export async function searchFoodsByName(query: string): Promise<SearchResult[]> 
     return (data.products ?? [])
       .map(mapOFFProductToSearchResult)
       .filter((item): item is SearchResult => item !== null);
-  } catch (error) {
-    console.warn('[openFoodFacts] searchFoodsByName failed:', error);
-    throw error;
+  } catch {
+    // Silently return empty — useFoodSearch uses allSettled and handles partial results
+    return [];
   }
 }

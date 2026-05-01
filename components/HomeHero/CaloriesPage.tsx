@@ -1,15 +1,7 @@
-import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  withTiming,
-  Easing,
-  useAnimatedStyle,
-} from 'react-native-reanimated';
 import { CalorieArc } from './CalorieArc';
 import { useTokens } from '@/hooks/useTokens';
 import { Type } from '@/constants/Typography';
-import { Duration } from '@/constants/Motion';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
 
 interface CaloriesPageProps {
@@ -21,22 +13,8 @@ interface CaloriesPageProps {
 export function CaloriesPage({ eaten, burned, target }: CaloriesPageProps) {
   const tokens = useTokens();
   const reduceMotion = useReduceMotion();
-  const animated = useSharedValue(0);
   const remaining = Math.max(0, target - eaten);
   const progress = target > 0 ? eaten / target : 0;
-
-  useEffect(() => {
-    if (reduceMotion) {
-      animated.value = eaten;
-    } else {
-      animated.value = withTiming(eaten, {
-        duration: Duration.base,
-        easing: Easing.out(Easing.ease),
-      });
-    }
-  }, [eaten, reduceMotion, animated]);
-
-  const displayNumber = Math.round(animated.value);
 
   return (
     <View style={styles.page}>
@@ -48,7 +26,7 @@ export function CaloriesPage({ eaten, burned, target }: CaloriesPageProps) {
           reduceMotion={reduceMotion}
         />
         <View style={styles.numberCenter} pointerEvents="none">
-          <Text style={[Type.displayHero, { color: tokens.text.primary }]}>{displayNumber}</Text>
+          <Text style={[Type.displayHero, { color: tokens.text.primary }]}>{eaten}</Text>
           <Text style={[Type.textSm, { color: tokens.text.secondary }]}>kcal</Text>
         </View>
       </View>
