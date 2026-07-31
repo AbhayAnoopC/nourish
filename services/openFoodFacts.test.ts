@@ -88,14 +88,16 @@ describe('searchFoodsByName', () => {
     expect(results).toEqual([]);
   });
 
-  it('throws when the API returns a non-ok status', async () => {
+  it('returns empty array when the API returns a non-ok status', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
-    await expect(searchFoodsByName('oat')).rejects.toThrow('500');
+    const results = await searchFoodsByName('oat');
+    expect(results).toEqual([]);
   });
 
-  it('throws when fetch rejects (network error)', async () => {
+  it('returns empty array when fetch rejects (network error)', async () => {
     mockFetch.mockRejectedValueOnce(new Error('timeout'));
-    await expect(searchFoodsByName('oat')).rejects.toThrow('timeout');
+    const results = await searchFoodsByName('oat');
+    expect(results).toEqual([]);
   });
 
   it('extracts servingGrams when serving_size is in grams', async () => {

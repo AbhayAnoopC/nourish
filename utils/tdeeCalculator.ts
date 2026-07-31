@@ -15,7 +15,8 @@ const GOAL_ADJUSTMENTS: Record<Goal, number> = {
 };
 
 export function calculateAge(dateOfBirth: string): number {
-  const dob = new Date(dateOfBirth);
+  const [y, m, d] = dateOfBirth.split('-').map(Number);
+  const dob = new Date(y, m - 1, d); // parse as local time to avoid UTC-offset date shift
   const today = new Date();
   let age = today.getFullYear() - dob.getFullYear();
   const monthDiff = today.getMonth() - dob.getMonth();
