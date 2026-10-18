@@ -3,14 +3,25 @@ import { useTokens } from '@/hooks/useTokens';
 import { Type } from '@/constants/Typography';
 import { SPACING } from '@/constants/Spacing';
 import { SearchResult } from '@/types';
+import { SkeletonRow } from '@/components/SkeletonRow';
 
-interface FoodSearchResultItemProps {
-  item: SearchResult;
-  onSelect: (item: SearchResult) => void;
-}
+type FoodSearchResultItemProps =
+  | { isLoading: true; item?: undefined; onSelect?: undefined }
+  | { isLoading?: false; item: SearchResult; onSelect: (item: SearchResult) => void };
 
-export function FoodSearchResultItem({ item, onSelect }: FoodSearchResultItemProps) {
+export function FoodSearchResultItem({ item, onSelect, isLoading }: FoodSearchResultItemProps) {
   const tokens = useTokens();
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { borderBottomColor: tokens.border.hairline }]}>
+        <View style={styles.skeletonBody}>
+          <SkeletonRow height={16} width="60%" />
+          <SkeletonRow height={12} width="40%" />
+        </View>
+      </View>
+    );
+  }
 
   const sourceLabel = item.source === 'usda' ? 'USDA' : 'OFF';
 
@@ -48,6 +59,11 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     minHeight: 64,
     borderBottomWidth: 1,
+  },
+  skeletonBody: {
+    flex: 1,
+    gap: SPACING.xs,
+    paddingVertical: SPACING.xs,
   },
   info: {
     flex: 1,

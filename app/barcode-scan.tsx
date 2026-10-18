@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { lookupByBarcode as offLookup } from '@/services/openFoodFacts';
 import { lookupByBarcode as usdaLookup } from '@/services/usda';
 import { useLogFlowStore } from '@/store/logFlowStore';
+import { parseServingGrams } from '@/utils/unitConverter';
 
 type ScanState = 'scanning' | 'loading' | 'not_found' | 'error';
 
@@ -18,7 +19,7 @@ export default function BarcodeScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanState, setScanState] = useState<ScanState>('scanning');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const setPendingItem = useLogFlowStore((s) => s.setPendingItem);
+  const setPendingLabelResult = useLogFlowStore((s) => s.setPendingLabelResult);
   const isProcessingRef = useRef(false);
 
   const handleBarcodeScanned = useCallback(
@@ -35,8 +36,20 @@ export default function BarcodeScanScreen() {
         }
 
         if (result) {
-          setPendingItem(result);
-          router.push('/confirm-food');
+          const gramWeight = parseServingGrams(result.servingSize) ?? 100;
+          const scale = gramWeight / 100;
+          setPendingLabelResult({
+            foodName: result.foodName,
+            brandName: result.brandName,
+            barcode: data,
+            servingDescription: result.servingSize || '100g',
+            servingQuantity: 1,
+            caloriesPerServing: Math.round(result.calories * scale),
+            proteinGPerServing: Math.round(result.proteinG * scale * 10) / 10,
+            carbsGPerServing: Math.round(result.carbsG * scale * 10) / 10,
+            fatGPerServing: Math.round(result.fatG * scale * 10) / 10,
+          });
+          router.push('/pantry-confirm');
           return;
         }
 
@@ -46,7 +59,7 @@ export default function BarcodeScanScreen() {
         setScanState('error');
       }
     },
-    [setPendingItem],
+    [setPendingLabelResult],
   );
 
   const handleReset = useCallback(() => {
@@ -90,9 +103,9 @@ export default function BarcodeScanScreen() {
             <Text style={[Type.textMd, styles.primaryButtonText]}>Allow Camera</Text>
           </TouchableOpacity>
         ) : (
-          <Text style={[Type.textSm, { color: tokens.text.secondary }, styles.settingsHint]}>
-            Camera permission was denied. Please enable it in Settings.
-          </Text>
+          <TouchableOpacity onPress={() => Linking.openSettings()} activeOpacity={0.8}>
+            <Text style={[styles.settingsHint, { color: tokens.accent.primary }]}>Open Settings</Text>
+          </TouchableOpacity>
         )}
       </View>
     );

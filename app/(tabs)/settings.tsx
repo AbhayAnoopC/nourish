@@ -4,6 +4,7 @@ import {
   Alert,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -14,6 +15,7 @@ import { Type } from '@/constants/Typography';
 import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { useAmazfit } from '@/hooks/useAmazfit';
 import { SavedServingsList } from '@/components/SavedServingsList';
+import { useAdaptiveTdeeStore } from '@/store/adaptiveTdeeStore';
 import type { AmazfitConnectionTier } from '@/types';
 
 const TIER_LABEL: Record<AmazfitConnectionTier, string> = {
@@ -63,6 +65,10 @@ export default function SettingsScreen() {
     const d = new Date(lastSyncedAt);
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }, [lastSyncedAt]);
+
+  const adaptiveEnabled = useAdaptiveTdeeStore((s) => s.enabled);
+  const setAdaptiveEnabled = useAdaptiveTdeeStore((s) => s.setEnabled);
+  const tdeeHistory = useAdaptiveTdeeStore((s) => s.history);
 
   const isConnected = connectionTier !== 'none';
 
@@ -140,6 +146,34 @@ export default function SettingsScreen() {
     </View>
   );
 
+  const historyRows = tdeeHistory.map((rec) => (
+    <View key={rec.date} style={[styles.historyRow, { borderColor: tokens.border.hairline }]}>
+      <Text style={[Type.monoSm, { color: tokens.text.secondary }]}>{rec.date}</Text>
+      <Text style={[Type.monoSm, { color: tokens.text.primary }]}>
+        {rec.oldTarget} → {rec.newTarget} kcal
+      </Text>
+    </View>
+  ));
+
+  const adaptiveTdeeSection = (
+    <View style={[styles.adaptiveCard, { backgroundColor: tokens.bg.surface }, cardShadow]}>
+      <View style={styles.adaptiveToggleRow}>
+        <Text style={[Type.textMd, { color: tokens.text.primary }]}>Auto-recalculate target</Text>
+        <Switch
+          value={adaptiveEnabled}
+          onValueChange={setAdaptiveEnabled}
+          trackColor={{ false: tokens.border.hairline, true: tokens.accent.primary }}
+        />
+      </View>
+      {tdeeHistory.length > 0 && (
+        <>
+          <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.subsectionLabel]}>History</Text>
+          {historyRows}
+        </>
+      )}
+    </View>
+  );
+
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: tokens.bg.primary }]}
@@ -167,6 +201,11 @@ export default function SettingsScreen() {
           <Text style={[Type.textMd, { color: tokens.status.danger }]}>Disconnect</Text>
         </TouchableOpacity>
       )}
+
+      <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.sectionHeading]}>
+        ADAPTIVE TDEE
+      </Text>
+      {adaptiveTdeeSection}
 
       <Text style={[Type.textXs, { color: tokens.text.secondary }, styles.sectionHeading]}>
         PROFILE
@@ -226,5 +265,27 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.lg,
     padding: SPACING.lg,
     alignItems: 'center',
+  },
+  adaptiveCard: {
+    borderRadius: BORDER_RADIUS.lg,
+    overflow: 'hidden',
+  },
+  adaptiveToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+  },
+  subsectionLabel: {
+    textTransform: 'uppercase',
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.xs,
+  },
+  historyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });

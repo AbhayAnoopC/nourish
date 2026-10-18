@@ -91,3 +91,59 @@ export interface ServingOption {
 }
 
 export type { WeightEntry } from '@/utils/sparklineData';
+export interface PhotoScanItem {
+  foodName: string;
+  servingSize: string;
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  uncertain?: boolean;
+}
+
+export interface EditablePhotoItem extends PhotoScanItem {
+  quantityText: string;
+}
+
+export interface LabelScanResult {
+  foodName: string;
+  brandName?: string;
+  barcode?: string;
+  servingDescription: string;
+  servingQuantity: number;
+  caloriesPerServing: number;
+  proteinGPerServing: number;
+  carbsGPerServing: number;
+  fatGPerServing: number;
+}
+
+export interface PantryItem {
+  id: string;
+  foodName: string;
+  brandName?: string;
+  barcode?: string;
+  servingDescription: string;
+  servingQuantity: number;
+  caloriesPerServing: number;
+  proteinGPerServing: number;
+  carbsGPerServing: number;
+  fatGPerServing: number;
+  addedAt: string;
+  source: 'barcode' | 'label';
+}
+
+export interface AdaptiveTdeeResult {
+  newTarget: number;
+  impliedTdee: number;
+  oldTarget: number;
+  avgDailyIntake: number;
+  weightDeltaKg: number;
+  daysAnalysed: number;
+}
+
+export interface TdeeRecalculation {
+  date: string;
+  oldTarget: number;
+  newTarget: number;
+  impliedTdee: number;
+}

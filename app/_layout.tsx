@@ -20,6 +20,8 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { AdaptiveTdeeModal } from '@/components/AdaptiveTdeeModal';
+import { useAdaptiveTdee } from '@/hooks/useAdaptiveTdee';
 import { useUserStore } from '@/store/userStore';
 
 export { ErrorBoundary } from 'expo-router';
@@ -67,6 +69,8 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const onboardingComplete = useUserStore((s) => s.profile?.onboardingComplete ?? false);
 
+  useAdaptiveTdee();
+
   useEffect(() => {
     if (!onboardingComplete) {
       router.replace('/onboarding/welcome');
@@ -83,6 +87,7 @@ function RootLayoutNav() {
         <Stack.Screen name="barcode-scan" options={{ headerShown: true }} />
         <Stack.Screen name="confirm-meal" options={{ headerShown: true }} />
       </Stack>
+      <AdaptiveTdeeModal />
     </ThemeProvider>
   );
 }

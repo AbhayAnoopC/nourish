@@ -1,6 +1,5 @@
 import { useCallback, useRef } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
@@ -40,7 +39,21 @@ export default function FoodSearchScreen() {
 
   const showEmptyHint = !loading && query.length < 2 && results.length === 0;
   const showError = !loading && error !== null;
-  const showResults = !loading && results.length > 0;
+  const showFlatList = query.length >= 2;
+
+  const emptyComponent = loading ? (
+    <View style={styles.skeletonList}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <FoodSearchResultItem key={i} isLoading />
+      ))}
+    </View>
+  ) : (
+    <View style={styles.emptyContainer}>
+      <Text style={[styles.emptyText, { color: tokens.text.secondary }]}>
+        {`No results for "${query}". Try scanning a barcode instead.`}
+      </Text>
+    </View>
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: tokens.bg.primary }]}>
@@ -76,13 +89,6 @@ export default function FoodSearchScreen() {
       </View>
 
       {/* States */}
-      {loading && (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={tokens.accent.primary} />
-          <Text style={[Type.textMd, { color: tokens.text.secondary }, styles.hintText]}>Searching…</Text>
-        </View>
-      )}
-
       {showEmptyHint && (
         <View style={styles.centered}>
           <Text style={[Type.textMd, { color: tokens.text.secondary }, styles.hintText]}>
@@ -97,13 +103,14 @@ export default function FoodSearchScreen() {
         </View>
       )}
 
-      {showResults && (
+      {showFlatList && (
         <FlatList<SearchResult>
           data={results}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <FoodSearchResultItem item={item} onSelect={handleSelect} />
           )}
+          ListEmptyComponent={emptyComponent}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: insets.bottom + SPACING.lg }}
         />
@@ -146,5 +153,17 @@ const styles = StyleSheet.create({
   },
   errorText: {
     textAlign: 'center',
+  },
+  skeletonList: {
+    paddingTop: SPACING.sm,
+  },
+  emptyContainer: {
+    padding: SPACING.xl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: FONT_SIZE.md,
+    textAlign: 'center',
+    lineHeight: FONT_SIZE.md * 1.6,
   },
 });

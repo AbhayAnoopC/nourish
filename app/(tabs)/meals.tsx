@@ -1,20 +1,26 @@
-import { useCallback, useMemo } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTokens } from '@/hooks/useTokens';
+import { PantryItemCard } from '@/components/PantryItemCard';
 import { SavedMealCard } from '@/components/SavedMealCard';
 import { Type } from '@/constants/Typography';
 import { BORDER_RADIUS, SPACING } from '@/constants/Spacing';
 import { useSavedMeals } from '@/hooks/useSavedMeals';
 import { useLogFlowStore } from '@/store/logFlowStore';
-import type { SavedMeal } from '@/types';
+import { usePantryStore } from '@/store/pantryStore';
+import type { PantryItem, SavedMeal } from '@/types';
+
+type ActiveTab = 'meals' | 'pantry';
 
 export default function MealsScreen() {
   const tokens = useTokens();
   const insets = useSafeAreaInsets();
   const { query, setQuery, filteredMeals, renameMeal, deleteMeal } = useSavedMeals();
   const setPendingMeal = useLogFlowStore((s) => s.setPendingMeal);
+  const pantryItems = usePantryStore((s) => s.items);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('meals');
 
   const handleSelect = useCallback(
     (meal: SavedMeal) => {
@@ -39,12 +45,44 @@ export default function MealsScreen() {
     [deleteMeal],
   );
 
-  const listHeader = useMemo(
+  const segmentControl = useMemo(
+    () => (
+      <View style={styles.segmentRow}>
+        {(['meals', 'pantry'] as const).map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[
+              styles.segment,
+              {
+                backgroundColor: activeTab === tab ? tokens.accent.primary : tokens.bg.surface,
+                borderColor: tokens.border.hairline,
+              },
+            ]}
+            onPress={() => setActiveTab(tab)}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                { color: activeTab === tab ? '#fff' : tokens.text.secondary },
+              ]}
+            >
+              {tab === 'meals' ? 'Saved Meals' : 'Pantry'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    ),
+    [activeTab, tokens],
+  );
+
+  const mealsListHeader = useMemo(
     () => (
       <View style={[styles.headerSection, { paddingTop: insets.top + SPACING.md }]}>
         <Text style={[Type.displayTitle, { color: tokens.text.primary }, styles.heading]}>
           Saved Meals
         </Text>
+        {segmentControl}
         <TextInput
           style={[
             Type.textMd,
@@ -59,10 +97,20 @@ export default function MealsScreen() {
         />
       </View>
     ),
-    [insets.top, tokens, query, setQuery],
+    [insets.top, tokens, query, setQuery, segmentControl],
   );
 
-  const emptyComponent = useMemo(
+  const pantryListHeader = useMemo(
+    () => (
+      <View style={[styles.headerSection, { paddingTop: insets.top + SPACING.md }]}>
+        <Text style={[Type.displayTitle, { color: tokens.text.primary }, styles.heading]}>Saved Meals</Text>
+        {segmentControl}
+      </View>
+    ),
+    [insets.top, tokens, segmentControl],
+  );
+
+  const mealsEmptyComponent = useMemo(
     () => (
       <View style={styles.empty}>
         <Text style={[Type.displayTitle, { color: tokens.text.primary }, styles.emptyTitle]}>
@@ -75,6 +123,38 @@ export default function MealsScreen() {
     ),
     [tokens],
   );
+
+  const pantryEmptyComponent = useMemo(
+    () => (
+      <View style={styles.emptyContainer}>
+        <Text style={[Type.textMd, { color: tokens.text.secondary }, styles.emptyText]}>
+          Your pantry is empty. Scan a barcode or nutrition label to add items.
+        </Text>
+      </View>
+    ),
+    [tokens.text.secondary],
+  );
+
+  if (activeTab === 'pantry') {
+    return (
+      <View style={[styles.container, { backgroundColor: tokens.bg.primary }]}>
+        <FlatList<PantryItem>
+          data={pantryItems}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <PantryItemCard item={item} />}
+          ListHeaderComponent={pantryListHeader}
+          ListEmptyComponent={pantryEmptyComponent}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: insets.bottom + SPACING.xl },
+          ]}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: tokens.bg.primary }]}>
@@ -89,8 +169,8 @@ export default function MealsScreen() {
             onDelete={handleDelete}
           />
         )}
-        ListHeaderComponent={listHeader}
-        ListEmptyComponent={emptyComponent}
+        ListHeaderComponent={mealsListHeader}
+        ListEmptyComponent={mealsEmptyComponent}
         contentContainerStyle={[
           styles.listContent,
           { paddingBottom: insets.bottom + 120 },
@@ -112,6 +192,22 @@ const styles = StyleSheet.create({
   heading: {
     marginBottom: SPACING.md,
   },
+  segmentRow: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  segment: {
+    flex: 1,
+    height: 40,
+    borderRadius: BORDER_RADIUS.lg,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  segmentText: {
+    fontWeight: '600',
+  },
   searchInput: {
     height: 48,
     borderRadius: BORDER_RADIUS.lg,
@@ -127,5 +223,17 @@ const styles = StyleSheet.create({
   },
   emptyBody: {
     textAlign: 'center',
+  },
+  emptyContainer: {
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.xl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    textAlign: 'center',
+  },
+  separator: {
+    height: SPACING.sm,
+    marginHorizontal: SPACING.md,
   },
 });

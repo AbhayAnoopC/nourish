@@ -50,14 +50,14 @@ const METHODS: MethodRow[] = [
     icon: Camera,
     title: 'Photo scan',
     description: 'AI identifies your meal',
-    available: false,
+    available: true,
     route: '/photo-scan',
   },
   {
     icon: ScanText,
     title: 'Scan label',
     description: 'Read a nutrition facts panel',
-    available: false,
+    available: true,
     route: '/label-scan',
   },
 ];
