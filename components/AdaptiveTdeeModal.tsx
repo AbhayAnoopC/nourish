@@ -1,8 +1,7 @@
 import { useCallback } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { useTokens } from '@/hooks/useTokens';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { useAdaptiveTdeeStore } from '@/store/adaptiveTdeeStore';
 import { useUserStore } from '@/store/userStore';
@@ -20,8 +19,7 @@ interface AdaptiveTdeeModalContentProps {
 }
 
 function AdaptiveTdeeModalContent({ result }: AdaptiveTdeeModalContentProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const tokens = useTokens();
   const updateProfile = useUserStore((s) => s.updateProfile);
   const profile = useUserStore((s) => s.profile);
   const recordRecalculation = useAdaptiveTdeeStore((s) => s.recordRecalculation);
@@ -42,35 +40,35 @@ function AdaptiveTdeeModalContent({ result }: AdaptiveTdeeModalContentProps) {
   return (
     <Animated.View
       entering={ZoomIn.springify()}
-      style={[styles.card, { backgroundColor: colors.card }]}
+      style={[styles.card, { backgroundColor: tokens.bg.surface }]}
     >
-      <Text style={[styles.headline, { color: colors.text }]}>
+      <Text style={[styles.headline, { color: tokens.text.primary }]}>
         Your body burns ~{result.impliedTdee} cal/day
       </Text>
-      <Text style={[styles.body, { color: colors.placeholder }]}>
+      <Text style={[styles.body, { color: tokens.text.secondary }]}>
         {goalMessage}
       </Text>
-      <View style={[styles.targetsRow, { borderColor: colors.border }]}>
+      <View style={[styles.targetsRow, { borderColor: tokens.border.hairline }]}>
         <View style={styles.targetCol}>
-          <Text style={[styles.targetLabel, { color: colors.placeholder }]}>
+          <Text style={[styles.targetLabel, { color: tokens.text.secondary }]}>
             Old target
           </Text>
-          <Text style={[styles.targetValue, { color: colors.placeholder }]}>
+          <Text style={[styles.targetValue, { color: tokens.text.secondary }]}>
             {result.oldTarget} kcal
           </Text>
         </View>
-        <Text style={[styles.arrow, { color: colors.tint }]}>→</Text>
+        <Text style={[styles.arrow, { color: tokens.accent.primary }]}>→</Text>
         <View style={styles.targetCol}>
-          <Text style={[styles.targetLabel, { color: colors.placeholder }]}>
+          <Text style={[styles.targetLabel, { color: tokens.text.secondary }]}>
             New target
           </Text>
-          <Text style={[styles.targetValue, { color: colors.text }]}>
+          <Text style={[styles.targetValue, { color: tokens.text.primary }]}>
             {result.newTarget} kcal
           </Text>
         </View>
       </View>
       <TouchableOpacity
-        style={[styles.btn, { backgroundColor: colors.tint }]}
+        style={[styles.btn, { backgroundColor: tokens.accent.primary }]}
         onPress={handleDismiss}
         activeOpacity={0.8}
       >

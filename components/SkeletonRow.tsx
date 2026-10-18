@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { useTokens } from '@/hooks/useTokens';
 import { BORDER_RADIUS } from '@/constants/Spacing';
 
 interface SkeletonRowProps {
@@ -10,8 +9,7 @@ interface SkeletonRowProps {
 }
 
 export function SkeletonRow({ height = 20, width = '100%' }: SkeletonRowProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const opacity = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -29,7 +27,7 @@ export function SkeletonRow({ height = 20, width = '100%' }: SkeletonRowProps) {
     <Animated.View
       style={[
         styles.bone,
-        { height, width, backgroundColor: colors.border, opacity },
+        { height, width, backgroundColor: tokens.border.hairline, opacity },
       ]}
     />
   );

@@ -3,8 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'rea
 import { Stack, router } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { useTokens } from '@/hooks/useTokens';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { scanMealPhoto, AnthropicServiceError } from '@/services/anthropic';
 import { useLogFlowStore } from '@/store/logFlowStore';
@@ -19,8 +18,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default function PhotoScanScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanState, setScanState] = useState<ScanState>('ready');
@@ -54,13 +52,13 @@ export default function PhotoScanScreen() {
 
   const screenOptions = {
     title: 'Photo Scan',
-    headerStyle: { backgroundColor: colors.card },
-    headerTintColor: colors.text,
+    headerStyle: { backgroundColor: tokens.bg.surface },
+    headerTintColor: tokens.text.primary,
     headerShadowVisible: false,
   };
 
   if (!permission) {
-    return <View style={[styles.container, { backgroundColor: colors.background }]} />;
+    return <View style={[styles.container, { backgroundColor: tokens.bg.primary }]} />;
   }
 
   if (!permission.granted) {
@@ -77,18 +75,18 @@ export default function PhotoScanScreen() {
   }
 
   const errorCard = scanState === 'error' ? (
-    <View style={[styles.feedbackCard, { backgroundColor: colors.card }]}>
-      <Text style={[styles.feedbackText, { color: colors.danger }]}>{errorMessage}</Text>
+    <View style={[styles.feedbackCard, { backgroundColor: tokens.bg.surface }]}>
+      <Text style={[styles.feedbackText, { color: tokens.status.danger }]}>{errorMessage}</Text>
       <View style={styles.btnRow}>
         <TouchableOpacity
-          style={[styles.secondaryBtn, { borderColor: colors.tint }]}
+          style={[styles.secondaryBtn, { borderColor: tokens.accent.primary }]}
           onPress={handleReset}
           activeOpacity={0.8}
         >
-          <Text style={[styles.secondaryBtnText, { color: colors.tint }]}>Try Again</Text>
+          <Text style={[styles.secondaryBtnText, { color: tokens.accent.primary }]}>Try Again</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.primaryBtn, { backgroundColor: colors.tint }]}
+          style={[styles.primaryBtn, { backgroundColor: tokens.accent.primary }]}
           onPress={() => router.replace('/food-search')}
           activeOpacity={0.8}
         >
@@ -100,7 +98,7 @@ export default function PhotoScanScreen() {
 
   const captureBtn = scanState !== 'error' ? (
     <TouchableOpacity
-      style={[styles.captureBtn, { backgroundColor: colors.tint }]}
+      style={[styles.captureBtn, { backgroundColor: tokens.accent.primary }]}
       onPress={handleCapture}
       disabled={scanState === 'scanning'}
       activeOpacity={0.8}

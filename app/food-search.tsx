@@ -49,7 +49,7 @@ export default function FoodSearchScreen() {
     </View>
   ) : (
     <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: tokens.text.secondary }]}>
+      <Text style={[Type.textMd, { color: tokens.text.secondary }, styles.emptyText]}>
         {`No results for "${query}". Try scanning a barcode instead.`}
       </Text>
     </View>
@@ -162,8 +162,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: FONT_SIZE.md,
     textAlign: 'center',
-    lineHeight: FONT_SIZE.md * 1.6,
   },
 });

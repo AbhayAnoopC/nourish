@@ -12,9 +12,8 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTokens } from '@/hooks/useTokens';
 import { MacroBar } from '@/components/MacroBar';
-import Colors from '@/constants/Colors';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { useLogFlowStore } from '@/store/logFlowStore';
 import { usePantryStore } from '@/store/pantryStore';
@@ -27,8 +26,7 @@ function generateId(): string {
 }
 
 export default function PantryConfirmScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const insets = useSafeAreaInsets();
 
   const pendingLabelResult = useLogFlowStore((s) => s.pendingLabelResult);
@@ -76,8 +74,7 @@ export default function PantryConfirmScreen() {
         timestamp: new Date().toISOString(),
         foodName: foodName.trim() || item.foodName,
         brandName: brandName.trim() || item.brandName,
-        servingSize: `${logServings} × ${servingDesc.trim() || item.servingDescription}`,
-        servingQuantity: logServings,
+        servingLabel: `${logServings} × ${servingDesc.trim() || item.servingDescription}`,
         calories: Math.round(item.caloriesPerServing * logServings),
         proteinG: Math.round(item.proteinGPerServing * logServings * 10) / 10,
         carbsG: Math.round(item.carbsGPerServing * logServings * 10) / 10,
@@ -96,9 +93,9 @@ export default function PantryConfirmScreen() {
 
   if (!item) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, styles.centered, { backgroundColor: tokens.bg.primary }]}>
         <Stack.Screen options={{ title: 'Save to Pantry' }} />
-        <Text style={[styles.errorText, { color: colors.danger }]}>
+        <Text style={[styles.errorText, { color: tokens.status.danger }]}>
           No scan result. Please go back and scan again.
         </Text>
       </View>
@@ -109,9 +106,9 @@ export default function PantryConfirmScreen() {
 
   const logServingsSection = alsoLog ? (
     <View style={styles.logServingsRow}>
-      <Text style={[styles.label, { color: colors.placeholder }]}>How many servings?</Text>
+      <Text style={[styles.label, { color: tokens.text.secondary }]}>How many servings?</Text>
       <TextInput
-        style={[styles.smallInput, { color: colors.text, borderColor: colors.border }]}
+        style={[styles.smallInput, { color: tokens.text.primary, borderColor: tokens.border.hairline }]}
         value={logServingsText}
         onChangeText={setLogServingsText}
         keyboardType="decimal-pad"
@@ -122,14 +119,14 @@ export default function PantryConfirmScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: tokens.bg.primary }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Stack.Screen
         options={{
           title: 'Save to Pantry',
-          headerStyle: { backgroundColor: colors.card },
-          headerTintColor: colors.text,
+          headerStyle: { backgroundColor: tokens.bg.surface },
+          headerTintColor: tokens.text.primary,
           headerShadowVisible: false,
         }}
       />
@@ -137,56 +134,56 @@ export default function PantryConfirmScreen() {
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + SPACING.xl }]}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.label, { color: colors.placeholder }]}>Food name</Text>
+        <View style={[styles.card, { backgroundColor: tokens.bg.surface, borderColor: tokens.border.hairline }]}>
+          <Text style={[styles.label, { color: tokens.text.secondary }]}>Food name</Text>
           <TextInput
-            style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+            style={[styles.input, { color: tokens.text.primary, borderColor: tokens.border.hairline }]}
             value={foodName}
             onChangeText={setFoodName}
             placeholder={item.foodName}
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={tokens.text.secondary}
           />
-          <Text style={[styles.label, { color: colors.placeholder, marginTop: SPACING.sm }]}>
+          <Text style={[styles.label, { color: tokens.text.secondary, marginTop: SPACING.sm }]}>
             Brand (optional)
           </Text>
           <TextInput
-            style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+            style={[styles.input, { color: tokens.text.primary, borderColor: tokens.border.hairline }]}
             value={brandName}
             onChangeText={setBrandName}
             placeholder="e.g. Wonder"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={tokens.text.secondary}
           />
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.label, { color: colors.placeholder }]}>Serving description</Text>
+        <View style={[styles.card, { backgroundColor: tokens.bg.surface, borderColor: tokens.border.hairline }]}>
+          <Text style={[styles.label, { color: tokens.text.secondary }]}>Serving description</Text>
           <TextInput
-            style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+            style={[styles.input, { color: tokens.text.primary, borderColor: tokens.border.hairline }]}
             value={servingDesc}
             onChangeText={setServingDesc}
             placeholder={item.servingDescription}
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={tokens.text.secondary}
           />
-          <Text style={[styles.label, { color: colors.placeholder, marginTop: SPACING.sm }]}>
+          <Text style={[styles.label, { color: tokens.text.secondary, marginTop: SPACING.sm }]}>
             Serving quantity (count in that description)
           </Text>
           <TextInput
-            style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+            style={[styles.input, { color: tokens.text.primary, borderColor: tokens.border.hairline }]}
             value={servingQtyText}
             onChangeText={setServingQtyText}
             keyboardType="decimal-pad"
             placeholder="1"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={tokens.text.secondary}
           />
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.label, { color: colors.placeholder }]}>
+        <View style={[styles.card, { backgroundColor: tokens.bg.surface, borderColor: tokens.border.hairline }]}>
+          <Text style={[styles.label, { color: tokens.text.secondary }]}>
             {`Nutrition per serving (${servingLabel})`}
           </Text>
-          <Text style={[styles.calorieValue, { color: colors.text }]}>
+          <Text style={[styles.calorieValue, { color: tokens.text.primary }]}>
             {item.caloriesPerServing}
-            <Text style={[styles.calorieUnit, { color: colors.placeholder }]}> kcal</Text>
+            <Text style={[styles.calorieUnit, { color: tokens.text.secondary }]}> kcal</Text>
           </Text>
           <MacroBar
             proteinG={item.proteinGPerServing}
@@ -195,22 +192,22 @@ export default function PantryConfirmScreen() {
           />
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View style={[styles.card, { backgroundColor: tokens.bg.surface, borderColor: tokens.border.hairline }]}>
           <View style={styles.row}>
-            <Text style={[styles.toggleLabel, { color: colors.text }]}>
+            <Text style={[styles.toggleLabel, { color: tokens.text.primary }]}>
               Also add to today's log
             </Text>
             <Switch
               value={alsoLog}
               onValueChange={setAlsoLog}
-              trackColor={{ true: colors.tint }}
+              trackColor={{ true: tokens.accent.primary }}
             />
           </View>
           {logServingsSection}
         </View>
 
         <TouchableOpacity
-          style={[styles.saveBtn, { backgroundColor: colors.tint }]}
+          style={[styles.saveBtn, { backgroundColor: tokens.accent.primary }]}
           onPress={handleSave}
           activeOpacity={0.8}
         >

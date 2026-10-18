@@ -8,8 +8,7 @@ import {
   View,
 } from 'react-native';
 import { router } from 'expo-router';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { useTokens } from '@/hooks/useTokens';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { usePantryStore } from '@/store/pantryStore';
 import { useDailyLogStore } from '@/store/dailyLogStore';
@@ -25,8 +24,7 @@ interface PantryItemCardProps {
 }
 
 export function PantryItemCard({ item }: PantryItemCardProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const [sheetVisible, setSheetVisible] = useState(false);
   const [servingsText, setServingsText] = useState('1');
   const removeItem = usePantryStore((s) => s.removeItem);
@@ -41,8 +39,7 @@ export function PantryItemCard({ item }: PantryItemCardProps) {
       timestamp: new Date().toISOString(),
       foodName: item.foodName,
       brandName: item.brandName,
-      servingSize: `${servings} × ${item.servingDescription}`,
-      servingQuantity: servings,
+      servingLabel: `${servings} × ${item.servingDescription}`,
       calories: Math.round(item.caloriesPerServing * servings),
       proteinG: Math.round(item.proteinGPerServing * servings * 10) / 10,
       carbsG: Math.round(item.carbsGPerServing * servings * 10) / 10,
@@ -56,7 +53,7 @@ export function PantryItemCard({ item }: PantryItemCardProps) {
 
   const brandRow =
     item.brandName !== undefined ? (
-      <Text style={[styles.brand, { color: colors.placeholder }]}>{item.brandName}</Text>
+      <Text style={[styles.brand, { color: tokens.text.secondary }]}>{item.brandName}</Text>
     ) : null;
 
   const totalCalories = Math.round(item.caloriesPerServing * servings);
@@ -64,53 +61,53 @@ export function PantryItemCard({ item }: PantryItemCardProps) {
   return (
     <>
       <TouchableOpacity
-        style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+        style={[styles.card, { backgroundColor: tokens.bg.surface, borderColor: tokens.border.hairline }]}
         onPress={() => setSheetVisible(true)}
         onLongPress={() => removeItem(item.id)}
         activeOpacity={0.7}
         delayLongPress={600}
       >
         <View style={styles.cardBody}>
-          <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>
+          <Text style={[styles.name, { color: tokens.text.primary }]} numberOfLines={1}>
             {item.foodName}
           </Text>
           {brandRow}
-          <Text style={[styles.serving, { color: colors.placeholder }]}>
+          <Text style={[styles.serving, { color: tokens.text.secondary }]}>
             {item.servingDescription} · {item.caloriesPerServing} kcal
           </Text>
         </View>
-        <Text style={[styles.arrow, { color: colors.placeholder }]}>›</Text>
+        <Text style={[styles.arrow, { color: tokens.text.secondary }]}>›</Text>
       </TouchableOpacity>
 
       <Modal visible={sheetVisible} transparent animationType="slide">
         <View style={styles.overlay}>
-          <View style={[styles.sheet, { backgroundColor: colors.card }]}>
-            <Text style={[styles.sheetTitle, { color: colors.text }]}>{item.foodName}</Text>
-            <Text style={[styles.sheetServing, { color: colors.placeholder }]}>
+          <View style={[styles.sheet, { backgroundColor: tokens.bg.surface }]}>
+            <Text style={[styles.sheetTitle, { color: tokens.text.primary }]}>{item.foodName}</Text>
+            <Text style={[styles.sheetServing, { color: tokens.text.secondary }]}>
               {item.caloriesPerServing} kcal per {item.servingDescription}
             </Text>
             <View style={styles.servingsRow}>
-              <Text style={[styles.servingsLabel, { color: colors.text }]}>Servings</Text>
+              <Text style={[styles.servingsLabel, { color: tokens.text.primary }]}>Servings</Text>
               <TextInput
-                style={[styles.servingsInput, { color: colors.text, borderColor: colors.border }]}
+                style={[styles.servingsInput, { color: tokens.text.primary, borderColor: tokens.border.hairline }]}
                 value={servingsText}
                 onChangeText={setServingsText}
                 keyboardType="decimal-pad"
                 selectTextOnFocus
               />
             </View>
-            <Text style={[styles.total, { color: colors.text }]}>
+            <Text style={[styles.total, { color: tokens.text.primary }]}>
               {totalCalories} kcal total
             </Text>
             <TouchableOpacity
-              style={[styles.logBtn, { backgroundColor: colors.tint }]}
+              style={[styles.logBtn, { backgroundColor: tokens.accent.primary }]}
               onPress={handleLog}
               activeOpacity={0.8}
             >
               <Text style={styles.logBtnText}>Add to Today's Log</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setSheetVisible(false)} activeOpacity={0.7}>
-              <Text style={[styles.cancelText, { color: colors.placeholder }]}>Cancel</Text>
+              <Text style={[styles.cancelText, { color: tokens.text.secondary }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>

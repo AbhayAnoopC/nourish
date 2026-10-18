@@ -3,8 +3,7 @@ import { ActivityIndicator, Linking, StyleSheet, Text, TouchableOpacity, View } 
 import { Stack, router } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { useTokens } from '@/hooks/useTokens';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { scanNutritionLabel, AnthropicServiceError } from '@/services/anthropic';
 import { useLogFlowStore } from '@/store/logFlowStore';
@@ -18,8 +17,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default function LabelScanScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanState, setScanState] = useState<ScanState>('ready');
@@ -52,19 +50,19 @@ export default function LabelScanScreen() {
 
   const screenOptions = {
     title: 'Scan Nutrition Label',
-    headerStyle: { backgroundColor: colors.card },
-    headerTintColor: colors.text,
+    headerStyle: { backgroundColor: tokens.bg.surface },
+    headerTintColor: tokens.text.primary,
     headerShadowVisible: false,
   };
 
   if (!permission) {
-    return <View style={[styles.container, { backgroundColor: colors.background }]} />;
+    return <View style={[styles.container, { backgroundColor: tokens.bg.primary }]} />;
   }
 
   if (!permission.granted) {
     const permissionAction = permission.canAskAgain ? (
       <TouchableOpacity
-        style={[styles.primaryBtn, { backgroundColor: colors.tint }]}
+        style={[styles.primaryBtn, { backgroundColor: tokens.accent.primary }]}
         onPress={requestPermission}
         activeOpacity={0.8}
       >
@@ -72,15 +70,15 @@ export default function LabelScanScreen() {
       </TouchableOpacity>
     ) : (
       <TouchableOpacity onPress={() => Linking.openSettings()} activeOpacity={0.8}>
-        <Text style={[styles.settingsLink, { color: colors.tint }]}>Open Settings</Text>
+        <Text style={[styles.settingsLink, { color: tokens.accent.primary }]}>Open Settings</Text>
       </TouchableOpacity>
     );
 
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, styles.centered, { backgroundColor: tokens.bg.primary }]}>
         <Stack.Screen options={screenOptions} />
-        <Text style={[styles.permTitle, { color: colors.text }]}>Camera Access Needed</Text>
-        <Text style={[styles.permBody, { color: colors.placeholder }]}>
+        <Text style={[styles.permTitle, { color: tokens.text.primary }]}>Camera Access Needed</Text>
+        <Text style={[styles.permBody, { color: tokens.text.secondary }]}>
           Allow camera access to scan nutrition labels.
         </Text>
         {permissionAction}
@@ -89,18 +87,18 @@ export default function LabelScanScreen() {
   }
 
   const errorCard = scanState === 'error' ? (
-    <View style={[styles.feedbackCard, { backgroundColor: colors.card }]}>
-      <Text style={[styles.feedbackText, { color: colors.danger }]}>{errorMessage}</Text>
+    <View style={[styles.feedbackCard, { backgroundColor: tokens.bg.surface }]}>
+      <Text style={[styles.feedbackText, { color: tokens.status.danger }]}>{errorMessage}</Text>
       <View style={styles.btnRow}>
         <TouchableOpacity
-          style={[styles.secondaryBtn, { borderColor: colors.tint }]}
+          style={[styles.secondaryBtn, { borderColor: tokens.accent.primary }]}
           onPress={handleReset}
           activeOpacity={0.8}
         >
-          <Text style={[styles.secondaryBtnText, { color: colors.tint }]}>Try Again</Text>
+          <Text style={[styles.secondaryBtnText, { color: tokens.accent.primary }]}>Try Again</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.primaryBtn, { backgroundColor: colors.tint }]}
+          style={[styles.primaryBtn, { backgroundColor: tokens.accent.primary }]}
           onPress={() => router.replace('/food-search')}
           activeOpacity={0.8}
         >
@@ -112,7 +110,7 @@ export default function LabelScanScreen() {
 
   const captureBtn = scanState !== 'error' ? (
     <TouchableOpacity
-      style={[styles.captureBtn, { backgroundColor: colors.tint }]}
+      style={[styles.captureBtn, { backgroundColor: tokens.accent.primary }]}
       onPress={handleCapture}
       disabled={scanState === 'scanning'}
       activeOpacity={0.8}

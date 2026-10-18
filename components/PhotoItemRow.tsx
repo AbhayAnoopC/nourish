@@ -1,6 +1,5 @@
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { useTokens } from '@/hooks/useTokens';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import type { EditablePhotoItem } from '@/types';
 
@@ -14,36 +13,35 @@ interface PhotoItemRowProps {
 }
 
 export default function PhotoItemRow({ item, index, onRemove, onQtyChange }: PhotoItemRowProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
 
   const qty = parseFloat(item.quantityText) || 1;
   const scaledCal = Math.round(item.calories * qty);
-  const borderColor = item.uncertain ? colors.warning : colors.border;
+  const borderColor = item.uncertain ? tokens.status.warning : tokens.border.hairline;
 
   const uncertainBadge = item.uncertain ? (
-    <Text style={[styles.uncertainBadge, { color: colors.warning }]}>⚠ Uncertain</Text>
+    <Text style={[styles.uncertainBadge, { color: tokens.status.warning }]}>⚠ Uncertain</Text>
   ) : null;
 
   return (
-    <View style={[styles.itemCard, { backgroundColor: colors.card, borderColor }]}>
+    <View style={[styles.itemCard, { backgroundColor: tokens.bg.surface, borderColor }]}>
       {uncertainBadge}
-      <Text style={[styles.itemName, { color: colors.text }]}>{item.foodName}</Text>
-      <Text style={[styles.itemServing, { color: colors.placeholder }]}>{item.servingSize}</Text>
+      <Text style={[styles.itemName, { color: tokens.text.primary }]}>{item.foodName}</Text>
+      <Text style={[styles.itemServing, { color: tokens.text.secondary }]}>{item.servingSize}</Text>
       <View style={styles.row}>
         <View style={styles.qtyRow}>
-          <Text style={[styles.qtyLabel, { color: colors.placeholder }]}>Qty</Text>
+          <Text style={[styles.qtyLabel, { color: tokens.text.secondary }]}>Qty</Text>
           <TextInput
-            style={[styles.qtyInput, { color: colors.text, borderColor: colors.border }]}
+            style={[styles.qtyInput, { color: tokens.text.primary, borderColor: tokens.border.hairline }]}
             value={item.quantityText}
             onChangeText={(t) => onQtyChange(index, t)}
             keyboardType="decimal-pad"
             selectTextOnFocus
           />
         </View>
-        <Text style={[styles.itemCal, { color: colors.text }]}>{scaledCal} kcal</Text>
+        <Text style={[styles.itemCal, { color: tokens.text.primary }]}>{scaledCal} kcal</Text>
         <TouchableOpacity onPress={() => onRemove(index)} activeOpacity={0.7}>
-          <Text style={[styles.removeBtn, { color: colors.danger }]}>Remove</Text>
+          <Text style={[styles.removeBtn, { color: tokens.status.danger }]}>Remove</Text>
         </TouchableOpacity>
       </View>
     </View>

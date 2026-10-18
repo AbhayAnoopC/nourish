@@ -1,6 +1,5 @@
 import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { useTokens } from '@/hooks/useTokens';
 import { FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { BORDER_RADIUS } from '@/constants/Spacing';
 
@@ -17,12 +16,11 @@ export default function CameraPermissionPrompt({
   canAskAgain,
   onRequest,
 }: CameraPermissionPromptProps) {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
 
   const action = canAskAgain ? (
     <TouchableOpacity
-      style={[styles.primaryBtn, { backgroundColor: colors.tint }]}
+      style={[styles.primaryBtn, { backgroundColor: tokens.accent.primary }]}
       onPress={onRequest}
       activeOpacity={0.8}
     >
@@ -30,14 +28,14 @@ export default function CameraPermissionPrompt({
     </TouchableOpacity>
   ) : (
     <TouchableOpacity onPress={() => Linking.openSettings()} activeOpacity={0.8}>
-      <Text style={[styles.settingsLink, { color: colors.tint }]}>Open Settings</Text>
+      <Text style={[styles.settingsLink, { color: tokens.accent.primary }]}>Open Settings</Text>
     </TouchableOpacity>
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-      <Text style={[styles.body, { color: colors.placeholder }]}>{body}</Text>
+    <View style={[styles.container, { backgroundColor: tokens.bg.primary }]}>
+      <Text style={[styles.title, { color: tokens.text.primary }]}>{title}</Text>
+      <Text style={[styles.body, { color: tokens.text.secondary }]}>{body}</Text>
       {action}
     </View>
   );

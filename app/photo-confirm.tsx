@@ -10,8 +10,7 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import { useTokens } from '@/hooks/useTokens';
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/constants/Spacing';
 import { useLogFlowStore } from '@/store/logFlowStore';
 import { useDailyLogStore } from '@/store/dailyLogStore';
@@ -24,8 +23,7 @@ function generateId(): string {
 }
 
 export default function PhotoConfirmScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const tokens = useTokens();
   const insets = useSafeAreaInsets();
   const rawItems = useLogFlowStore((s) => s.pendingPhotoItems);
   const clearPendingPhotoItems = useLogFlowStore((s) => s.clearPendingPhotoItems);
@@ -54,8 +52,7 @@ export default function PhotoConfirmScreen() {
         date: today,
         timestamp: new Date().toISOString(),
         foodName: item.foodName,
-        servingSize: item.servingSize,
-        servingQuantity: qty,
+        servingLabel: `${qty} × ${item.servingSize}`,
         calories: Math.round(item.calories * qty),
         proteinG: Math.round((item.proteinG ?? 0) * qty * 10) / 10,
         carbsG: Math.round((item.carbsG ?? 0) * qty * 10) / 10,
@@ -70,9 +67,9 @@ export default function PhotoConfirmScreen() {
 
   if (!rawItems) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View style={[styles.container, styles.centered, { backgroundColor: tokens.bg.primary }]}>
         <Stack.Screen options={{ title: 'Review Meal' }} />
-        <Text style={[styles.errorText, { color: colors.danger }]}>
+        <Text style={[styles.errorText, { color: tokens.status.danger }]}>
           No scan result. Go back and try again.
         </Text>
       </View>
@@ -80,14 +77,14 @@ export default function PhotoConfirmScreen() {
   }
 
   const listHeader = (
-    <Text style={[styles.subheading, { color: colors.placeholder }]}>
+    <Text style={[styles.subheading, { color: tokens.text.secondary }]}>
       {items.length} item{items.length !== 1 ? 's' : ''} detected — review and adjust before logging.
     </Text>
   );
 
   const listFooter = items.length > 0 ? (
     <TouchableOpacity
-      style={[styles.addAllBtn, { backgroundColor: colors.tint }]}
+      style={[styles.addAllBtn, { backgroundColor: tokens.accent.primary }]}
       onPress={handleAddAll}
       activeOpacity={0.8}
     >
@@ -95,7 +92,7 @@ export default function PhotoConfirmScreen() {
     </TouchableOpacity>
   ) : (
     <View style={styles.centered}>
-      <Text style={[styles.emptyText, { color: colors.placeholder }]}>
+      <Text style={[styles.emptyText, { color: tokens.text.secondary }]}>
         All items removed. Go back to retake the photo.
       </Text>
     </View>
@@ -103,14 +100,14 @@ export default function PhotoConfirmScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: tokens.bg.primary }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Stack.Screen
         options={{
           title: 'Review Meal',
-          headerStyle: { backgroundColor: colors.card },
-          headerTintColor: colors.text,
+          headerStyle: { backgroundColor: tokens.bg.surface },
+          headerTintColor: tokens.text.primary,
           headerShadowVisible: false,
         }}
       />

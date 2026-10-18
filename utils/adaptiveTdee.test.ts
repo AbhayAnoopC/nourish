@@ -5,7 +5,7 @@ function makeLog(date: string, calories: number, bodyWeightKg?: number): DailyLo
   const items: FoodLogItem[] = calories > 0
     ? [{
         id: date, date, timestamp: `${date}T12:00:00.000Z`,
-        foodName: 'Food', servingSize: '1 serving', servingQuantity: 1,
+        foodName: 'Food', servingLabel: '1 serving',
         calories, proteinG: 30, carbsG: 50, fatG: 20, source: 'manual',
       }]
     : [];
