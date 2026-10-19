@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs } from 'expo-router/js-tabs';
 import { TabBarWithFab } from '@/components/TabBarWithFab';
 
 export default function TabLayout() {

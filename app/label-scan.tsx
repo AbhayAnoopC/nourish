@@ -139,7 +139,7 @@ export default function LabelScanScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { alignItems: 'center', justifyContent: 'center', padding: SPACING.xl },
-  camera: { ...StyleSheet.absoluteFillObject },
+  camera: { ...StyleSheet.absoluteFill },
   overlay: {
     flex: 1,
     alignItems: 'center',

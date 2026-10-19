@@ -6,7 +6,7 @@ import { useTokens } from '@/hooks/useTokens';
 import { Type } from '@/constants/Typography';
 import { HeroFab } from './HeroFab';
 import { LogMethodsSheet } from './LogMethodsSheet';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import type { BottomTabBarProps } from 'expo-router/js-tabs';
 
 const ICONS: Record<string, typeof House> = {
   index: House,

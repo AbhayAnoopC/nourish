@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     padding: SPACING.xl,
   },
   camera: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   overlay: {
     flex: 1,

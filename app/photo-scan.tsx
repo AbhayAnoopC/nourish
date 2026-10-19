@@ -126,7 +126,7 @@ export default function PhotoScanScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  camera: { ...StyleSheet.absoluteFillObject },
+  camera: { ...StyleSheet.absoluteFill },
   overlay: {
     flex: 1,
     alignItems: 'center',
