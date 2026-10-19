@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useTokens } from '@/hooks/useTokens';
 import { HomeHeader } from '@/components/HomeHeader';
 import { HomeHeroPager } from '@/components/HomeHero/HomeHeroPager';
@@ -50,6 +50,15 @@ export default function HomeScreen() {
       .filter((l) => typeof l.bodyWeightKg === 'number')
       .map((l) => ({ date: l.date, weightKg: l.bodyWeightKg as number }));
   }, [allLogs]);
+
+  const handleConnectZepp = useCallback(async () => {
+    try {
+      await connectZepp();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Connection failed';
+      Alert.alert('Connection Failed', message);
+    }
+  }, [connectZepp]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -130,7 +139,7 @@ export default function HomeScreen() {
         <HomeHeader date={formatDisplayDate(new Date())} greeting={greeting} />
         {showNudge && (
           <WatchNudgeBanner
-            onConnectZepp={connectZepp}
+            onConnectZepp={handleConnectZepp}
             onConnectHealth={connectHealthKit}
             onDismiss={dismissNudge}
           />
@@ -141,7 +150,7 @@ export default function HomeScreen() {
         </Text>
       </View>
     ),
-    [greeting, showNudge, connectZepp, connectHealthKit, dismissNudge, heroPages, tokens.text.secondary],
+    [greeting, showNudge, handleConnectZepp, connectHealthKit, dismissNudge, heroPages, tokens.text.secondary],
   );
 
   const emptyComponent = useMemo(
